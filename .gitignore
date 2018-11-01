@@ -1,0 +1,7 @@
+#Python
+*.pyc
+
+data
+output
+results
+tools/log.txt
