@@ -94,8 +94,13 @@ if __name__ == '__main__':
         print('Waiting for {} to exist...'.format(args.caffemodel))
         time.sleep(10)
 
-    caffe.set_mode_gpu()
-    caffe.set_device(args.gpu_id)
+    # set up caffe
+    if cfg.USE_GPU_IN_CAFFE == True:        
+        caffe.set_mode_gpu()
+        caffe.set_device(args.gpu_id)
+    else:
+        caffe.set_mode_cpu()
+
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 

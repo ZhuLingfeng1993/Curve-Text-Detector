@@ -11,15 +11,6 @@ from utils.blob import im_list_to_blob
 
 from shapely.geometry import *
 
-caffe.set_mode_gpu()
-caffe.set_device(0)
-
-net_prototxt = "../models/ctd/test_ctd_tloc.prototxt" 
-model = "../output/ctd_tloc.caffemodel" 
-cofig_file = "../experiments/cfgs/rfcn_ctd.yml"
-images = glob.glob("../images/demo/*.jpg")
-
-
 def _get_image_blob(im):
     im_orig = im.astype(np.float32, copy=True)
     im_orig -= cfg.PIXEL_MEANS
@@ -125,6 +116,18 @@ def nps(dets, cdets):
     return dets, cdets
 
 if __name__ == "__main__":
+    # set up caffe
+    if cfg.USE_GPU_IN_CAFFE == True:
+        caffe.set_mode_gpu()
+        caffe.set_device(0)
+    else:
+        caffe.set_mode_cpu()
+
+    net_prototxt = "../models/ctd/test_ctd_tloc.prototxt"
+    model = "../output/ctd_tloc.caffemodel"
+    cofig_file = "../experiments/cfgs/rfcn_ctd.yml"
+    images = glob.glob("../images/demo/*.jpg")
+
     cfg_from_file(cofig_file)
     net = caffe.Net(net_prototxt, model, caffe.TEST)
 

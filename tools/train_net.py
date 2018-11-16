@@ -104,8 +104,11 @@ if __name__ == '__main__':
     dataset['image_file'] = args.trainval_image
 
     # set up caffe
-    caffe.set_mode_gpu()
-    caffe.set_device(args.gpu_id)
+    if cfg.USE_GPU_IN_CAFFE == True:        
+        caffe.set_mode_gpu()
+        caffe.set_device(args.gpu_id)
+    else:
+        caffe.set_mode_cpu()
 
     imdb, roidb = combined_roidb(dataset)
     print '{:d} roidb entries'.format(len(roidb))

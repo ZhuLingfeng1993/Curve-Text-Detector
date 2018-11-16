@@ -221,11 +221,12 @@ __C.MATLAB = 'matlab'
 __C.EXP_DIR = 'default'
 
 # Use GPU implementation of non-maximum suppression
-__C.USE_GPU_NMS = True
+__C.USE_GPU_NMS = False
 
 # Default GPU device id
 __C.GPU_ID = 0
 
+__C.USE_GPU_IN_CAFFE = False
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.
