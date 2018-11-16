@@ -1,6 +1,10 @@
 #Python
 *.pyc
 
+# pycharm
+.idea
+
+# Project
 data
 output
 results
