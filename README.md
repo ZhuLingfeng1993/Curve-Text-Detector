@@ -3,7 +3,7 @@
 Released on December 06, 2017
 
 # Recent Update 
-  
+
 (July 25, 2018)
 
 - We provide a brief evaluation script for researches to evaluate their own methods on the CTW1500 dataset. The instruction and details are given in tools/ctw1500_evaluation/Readme.md.
@@ -138,6 +138,22 @@ If you find our method or the dataset useful for your research, please cite
 2. cd ROOT/caffe/  and use your own Makefile.config to compile (make all && make pycaffe). If you are using ubuntu 14.04, you may need to modify Makefile line 181 (hdf5_serial_hl hdf5_serial) to (hdf5 hdf5_hl).
 3. cd ROOT/lib make (based on python2)
 4. pip install shapely. (Enable computing polygon intersection.)
+
+# Installation
+
+参考py-R-FCN
+
+# Installation supporting cpu-only
+
+参考py-RFCN, 比较文件差别再改
+
+查看网络结构: 添加了lstm, 使用smoothL1OHEM
+
+lstm似乎支持cpu, smoothL1, roipooling都不支持cpu
+
+现在GPU上试试吧
+
+
 
 ## Feedback
 Suggestions and opinions of this dataset (both positive and negative) are greatly welcome. Please contact the authors by sending email to
