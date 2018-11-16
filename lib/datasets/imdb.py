@@ -7,7 +7,7 @@ import scipy.sparse
 from fast_rcnn.config import cfg
 
 class imdb_text(object):
-    """Image database."""
+    """Image with text box annotation database."""
 
     def __init__(self, name):
         self._name = name

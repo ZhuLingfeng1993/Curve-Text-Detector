@@ -42,6 +42,15 @@ class ctw1500(imdb_text):
         self._roidb = self._load_roidb(self._labels)
 
     def _load_label_image(self, filename, images_path):
+        """
+        Load label and image info into labels from label files and image path files
+        labels:list of size N as the number of images
+        each element of labels is a dictionary with keys:
+            'name'
+            'imagePath'
+            'gt_boxes': circumsribed rectangle of polygon box ,size = (M,4), M is number of boxes
+            'gt_info': 14 points xy cordinates of each polygon box, size = (M,28)
+        """
         labels = []
         with open(filename.strip(), 'r') as fs, open(images_path.strip(),'r') as pimgs:
             files = fs.readlines()
@@ -107,8 +116,8 @@ class ctw1500(imdb_text):
 ################# the annotation's path and name
     def _load_ctw1500_annotation(self, labels, index):
         """
-        Load image and bounding boxes info from TXT file in the CTW1500
-        format.
+        Load image and bounding boxes info a dictionary from item of index of labels in the CTW1500
+        format. This dictionary will be an element of gt_roidb
         """
         num_objs = len(labels[index]['gt_boxes'])
 
@@ -124,9 +133,9 @@ class ctw1500(imdb_text):
 
         gt_classes[:] = cls
 
-        return {'boxes' : gt_boxes,
-                'gt_classes': gt_classes,
-                'gt_info': gt_info, # syn
+        return {'boxes' : gt_boxes, # circumsribed rectangle of polygon box ,size = (M,4), M is number of boxes
+                'gt_classes': gt_classes, #
+                'gt_info': gt_info, # syn # 14 points xy cordinates of each polygon box, size = (M,28)
                 'flipped' : False,
                 'imagePath' : gt_name}
 
