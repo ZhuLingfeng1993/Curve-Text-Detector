@@ -5,7 +5,8 @@
 .idea
 
 # Project
-data
+#data
 output
 results
 tools/log.txt
+*.caffemodel
