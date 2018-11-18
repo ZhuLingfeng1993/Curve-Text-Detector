@@ -1,7 +1,7 @@
-from datasets.text import ctw1500
+from datasets.text import icdar2015ch4
 
 def get_imdb(dataset):
-    imdb = ctw1500(dataset)
+    imdb = icdar2015ch4(dataset)
     return imdb
 
 def list_imdbs():

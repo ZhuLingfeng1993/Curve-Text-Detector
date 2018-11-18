@@ -50,9 +50,9 @@ def parse_args():
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
 
-    parser.add_argument('--trainval_label', dest='trainval_label',
+    parser.add_argument('--train_label_list', dest='train_label_list',
                         help='place to save', default=None, type=str)
-    parser.add_argument('--trainval_image', dest='trainval_image',
+    parser.add_argument('--train_image_list', dest='train_image_list',
                         help='place to save', default=None, type=str)
 
     if len(sys.argv) == 1:
@@ -74,6 +74,11 @@ def combined_roidb(dataset):
     return imdb, roidb
 
 if __name__ == '__main__':
+    # run parameters
+    # ctd
+    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 78000 --imdb ctw1500 --cfg experiments/cfgs/rfcn_ctd.yml --trainval_label data/ctw1500/train/trainval_label_curve.txt --trainval_image data/ctw1500/train/trainval.txt
+    # icdar2015ch4
+    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 78000 --imdb icdar2015ch4 --cfg experiments/cfgs/rfcn_ctd.yml --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt --train_image_list data/icdar2015ch4/ch4_training_images.txt
     args = parse_args()
 
     print('Called with args:')
@@ -96,12 +101,12 @@ if __name__ == '__main__':
 
     dataset = {}
     dataset['name'] = args.imdb_name
-    if args.trainval_label is None:
+    if args.train_label_list is None:
         assert(0), 'Can not find trainval label list.'
-    if args.trainval_image is None:
+    if args.train_image_list is None:
         assert(0), 'Can not find trainval image list.'
-    dataset['label_file'] = args.trainval_label
-    dataset['image_file'] = args.trainval_image
+    dataset['label_list_file'] = args.train_label_list
+    dataset['image_list_file'] = args.train_image_list
 
     # set up caffe
     if cfg.USE_GPU_IN_CAFFE == True:        
