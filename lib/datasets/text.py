@@ -51,8 +51,8 @@ class icdar2015ch4(imdb_text):
         each element of labels is a dictionary with keys:
             'name'
             'imagePath'
-            'gt_boxes': circumsribed rectangle of polygon box ,size = (M,4), M is number of boxes
-            'gt_info': 4 points xy cordinates of each quadrilateral box, size = (M,8)
+            'gt_boxes': circumscribed rectangle of polygon box ,size = (M,4), M is number of boxes
+            'gt_info': 4 points xy coordinates of each quadrilateral box, size = (M,8)
         """
         labels = []
         with open(self._label_list_file, 'r') as fs, open(self._image_list_file.strip(), 'r') as pimgs:
@@ -79,12 +79,12 @@ class icdar2015ch4(imdb_text):
                     line_boxes = lightSen
 
                     num_boxes = len(line_boxes)
-                    # 4 points of quadrilateral: (x1, y1, x2, y2, x3, y3, x4, y4)
+                    # quadrilateral points: (x1, y1, x2, y2, x3, y3, x4, y4)
                     gt_info = np.zeros((num_boxes, 8), np.float32)  # syn
-                    # 2 points of circumsribed rectangle of quadrilateral box: (xmin, ymin, xmax, ymax)
+                    # circumscribed rectangle box: (xmin, ymin, xmax, ymax)
                     box = np.zeros((num_boxes, 4), np.float32)
                     for ix, line in enumerate(line_boxes):
-                        items = re.split(',', line)  # cordinates
+                        items = re.split(',', line)  # coordinates
                         gt_info[ix, :] = [float(items[i].strip()) for i in range(0, 8)]
                         tuple_points = [(gt_info[ix, ind_p:ind_p + 2]) for ind_p in [0, 2, 4, 6]]
                         quadrilateral = Polygon(tuple_points)
@@ -147,9 +147,9 @@ class icdar2015ch4(imdb_text):
 
         gt_classes[:] = cls
 
-        return {'boxes': gt_boxes,  # circumsribed rectangle of polygon box ,size = (M,4), M is number of boxes
+        return {'boxes': gt_boxes,  # circumscribed rectangle of polygon box ,size = (M,4), M is number of boxes
                 'gt_classes': gt_classes,  #
-                'gt_info': gt_info,  # syn # 4 points xy cordinates of each polygon box, size = (M,8)
+                'gt_info': gt_info,  # syn # 4 points xy coordinates of each polygon box, size = (M,8)
                 'flipped': False,
                 'imagePath': gt_name}
 

@@ -33,10 +33,10 @@ def get_minibatch(roidb, num_classes):
         gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :] * im_scales[0]
         gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
 
-        ######################################## curve
-        gt_info = np.empty((len(gt_inds), 28), dtype = np.float32)
-        gt_info[:, :28] = roidb[0]['gt_info'][gt_inds, :28] * im_scales[0]
-        ########################################
+        # quadrilateral
+        gt_info = np.empty((len(gt_inds), 8), dtype = np.float32)
+        gt_info[:, :8] = roidb[0]['gt_info'][gt_inds, :8] * im_scales[0]
+
         ascii_encode = [ord(i) for i in roidb[0]['imagePath']] # encode image path. For tracking
         im_info_withPath = [im_blob.shape[2]]+[im_blob.shape[3]]+[im_scales[0]]+ascii_encode
 
@@ -46,7 +46,7 @@ def get_minibatch(roidb, num_classes):
             [im_info_withPath],
             dtype=np.float32)
 
-        blobs['gt_info'] = gt_info # curve
+        blobs['gt_info'] = gt_info
     return blobs
 
 

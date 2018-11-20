@@ -67,72 +67,71 @@ def info_syn_transform_hw(ex_rois, gt_info):
     ex_ctr_x = ex_rois[:, 0] + 0.5 * ex_widths
     ex_ctr_y = ex_rois[:, 1] + 0.5 * ex_heights
 
-    assert gt_info.shape[1] == 28, 'length does not match gt_info'
+    assert gt_info.shape[1] == 8, 'length does not match gt_info'
 
     gt_p1h = gt_info[:, 1]
     gt_p2h = gt_info[:, 3]
     gt_p3h = gt_info[:, 5]
     gt_p4h = gt_info[:, 7]
-    gt_p5h = gt_info[:, 9]
-    gt_p6h = gt_info[:, 11]
-    gt_p7h = gt_info[:, 13]
-    gt_p8h = gt_info[:, 15]
-    gt_p9h = gt_info[:, 17]
-    gt_p10h = gt_info[:, 19]
-    gt_p11h = gt_info[:, 21]
-    gt_p12h = gt_info[:, 23]
-    gt_p13h = gt_info[:, 25]
-    gt_p14h = gt_info[:, 27]
+    # gt_p5h = gt_info[:, 9]
+    # gt_p6h = gt_info[:, 11]
+    # gt_p7h = gt_info[:, 13]
+    # gt_p8h = gt_info[:, 15]
+    # gt_p9h = gt_info[:, 17]
+    # gt_p10h = gt_info[:, 19]
+    # gt_p11h = gt_info[:, 21]
+    # gt_p12h = gt_info[:, 23]
+    # gt_p13h = gt_info[:, 25]
+    # gt_p14h = gt_info[:, 27]
 
     gt_p1w = gt_info[:, 0]
     gt_p2w = gt_info[:, 2]
     gt_p3w = gt_info[:, 4]
     gt_p4w = gt_info[:, 6]
     gt_p5w = gt_info[:, 8]
-    gt_p6w = gt_info[:, 10]
-    gt_p7w = gt_info[:, 12]
-    gt_p8w = gt_info[:, 14]
-    gt_p9w = gt_info[:, 16]
-    gt_p10w = gt_info[:, 18]
-    gt_p11w = gt_info[:, 20]
-    gt_p12w = gt_info[:, 22]
-    gt_p13w = gt_info[:, 24]
-    gt_p14w = gt_info[:, 26]
+    # gt_p6w = gt_info[:, 10]
+    # gt_p7w = gt_info[:, 12]
+    # gt_p8w = gt_info[:, 14]
+    # gt_p9w = gt_info[:, 16]
+    # gt_p10w = gt_info[:, 18]
+    # gt_p11w = gt_info[:, 20]
+    # gt_p12w = gt_info[:, 22]
+    # gt_p13w = gt_info[:, 24]
+    # gt_p14w = gt_info[:, 26]
 
     targets_dp1h = ( gt_p1h - ex_heights) * 0.5 / ex_heights
     targets_dp2h = ( gt_p2h - ex_heights) * 0.5 / ex_heights
     targets_dp3h = ( gt_p3h - ex_heights) * 0.5 / ex_heights
     targets_dp4h = ( gt_p4h - ex_heights) * 0.5 / ex_heights
-    targets_dp5h = ( gt_p5h - ex_heights) * 0.5 / ex_heights
-    targets_dp6h = ( gt_p6h - ex_heights) * 0.5 / ex_heights
-    targets_dp7h = ( gt_p7h - ex_heights) * 0.5 / ex_heights
-    targets_dp8h = ( gt_p8h - ex_heights) * 0.5 / ex_heights
-    targets_dp9h = ( gt_p9h - ex_heights) * 0.5 / ex_heights
-    targets_dp10h = ( gt_p10h - ex_heights) * 0.5 / ex_heights
-    targets_dp11h = ( gt_p11h - ex_heights) * 0.5 / ex_heights
-    targets_dp12h = ( gt_p12h - ex_heights) * 0.5 / ex_heights
-    targets_dp13h = ( gt_p13h - ex_heights) * 0.5 / ex_heights
-    targets_dp14h = ( gt_p14h - ex_heights) * 0.5 / ex_heights
+    # targets_dp5h = ( gt_p5h - ex_heights) * 0.5 / ex_heights
+    # targets_dp6h = ( gt_p6h - ex_heights) * 0.5 / ex_heights
+    # targets_dp7h = ( gt_p7h - ex_heights) * 0.5 / ex_heights
+    # targets_dp8h = ( gt_p8h - ex_heights) * 0.5 / ex_heights
+    # targets_dp9h = ( gt_p9h - ex_heights) * 0.5 / ex_heights
+    # targets_dp10h = ( gt_p10h - ex_heights) * 0.5 / ex_heights
+    # targets_dp11h = ( gt_p11h - ex_heights) * 0.5 / ex_heights
+    # targets_dp12h = ( gt_p12h - ex_heights) * 0.5 / ex_heights
+    # targets_dp13h = ( gt_p13h - ex_heights) * 0.5 / ex_heights
+    # targets_dp14h = ( gt_p14h - ex_heights) * 0.5 / ex_heights
 
     targets_dp1w = ( gt_p1w - ex_widths) * 0.5 / ex_widths
     targets_dp2w = ( gt_p2w - ex_widths) * 0.5 / ex_widths
     targets_dp3w = ( gt_p3w - ex_widths) * 0.5 / ex_widths
     targets_dp4w = ( gt_p4w - ex_widths) * 0.5 / ex_widths
-    targets_dp5w = ( gt_p5w - ex_widths) * 0.5 / ex_widths
-    targets_dp6w = ( gt_p6w - ex_widths) * 0.5 / ex_widths
-    targets_dp7w = ( gt_p7w - ex_widths) * 0.5 / ex_widths
-    targets_dp8w = ( gt_p8w - ex_widths) * 0.5 / ex_widths
-    targets_dp9w = ( gt_p9w - ex_widths) * 0.5 / ex_widths
-    targets_dp10w = ( gt_p10w - ex_widths) * 0.5 / ex_widths
-    targets_dp11w = ( gt_p11w - ex_widths) * 0.5 / ex_widths
-    targets_dp12w = ( gt_p12w - ex_widths) * 0.5 / ex_widths
-    targets_dp13w = ( gt_p13w - ex_widths) * 0.5 / ex_widths
-    targets_dp14w = ( gt_p14w - ex_widths) * 0.5 / ex_widths
+    # targets_dp5w = ( gt_p5w - ex_widths) * 0.5 / ex_widths
+    # targets_dp6w = ( gt_p6w - ex_widths) * 0.5 / ex_widths
+    # targets_dp7w = ( gt_p7w - ex_widths) * 0.5 / ex_widths
+    # targets_dp8w = ( gt_p8w - ex_widths) * 0.5 / ex_widths
+    # targets_dp9w = ( gt_p9w - ex_widths) * 0.5 / ex_widths
+    # targets_dp10w = ( gt_p10w - ex_widths) * 0.5 / ex_widths
+    # targets_dp11w = ( gt_p11w - ex_widths) * 0.5 / ex_widths
+    # targets_dp12w = ( gt_p12w - ex_widths) * 0.5 / ex_widths
+    # targets_dp13w = ( gt_p13w - ex_widths) * 0.5 / ex_widths
+    # targets_dp14w = ( gt_p14w - ex_widths) * 0.5 / ex_widths
 
-    encode_0 = np.zeros_like(targets_dp1w) 
-    targets = np.vstack((encode_0, encode_0, targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, targets_dp5h, targets_dp6h, targets_dp7h, targets_dp8h, targets_dp9h, targets_dp10h, targets_dp11h, targets_dp12h, targets_dp13h, targets_dp14h, 
-        encode_0, encode_0, targets_dp1w, targets_dp2w, targets_dp3w, targets_dp4w, targets_dp5w, targets_dp6w, targets_dp7w, targets_dp8w, targets_dp9w, targets_dp10w, targets_dp11w, targets_dp12w, targets_dp13w, targets_dp14w)).transpose() # 44
-
+    # encode_0 = np.zeros_like(targets_dp1w)
+    # targets = np.vstack((encode_0, encode_0, targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, targets_dp5h, targets_dp6h, targets_dp7h, targets_dp8h, targets_dp9h, targets_dp10h, targets_dp11h, targets_dp12h, targets_dp13h, targets_dp14h, encode_0, encode_0, targets_dp1w, targets_dp2w, targets_dp3w, targets_dp4w, targets_dp5w, targets_dp6w, targets_dp7w, targets_dp8w, targets_dp9w, targets_dp10w, targets_dp11w, targets_dp12w, targets_dp13w, targets_dp14w)).transpose() # 44
+    targets = np.vstack((targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, targets_dp1w, targets_dp2w, targets_dp3w, targets_dp4w)).transpose()
     return targets
 
 def info_syn_transform_inv_h(boxes, deltas):
