@@ -13,4 +13,4 @@ snapshot: 0
 snapshot_prefix: "ctd_tloc" 
 clip_gradients: 20
 iter_size: 4
-# debug_info: true
+debug_info: true
