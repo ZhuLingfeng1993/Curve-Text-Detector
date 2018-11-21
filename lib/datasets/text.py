@@ -52,10 +52,14 @@ class ctw1500(imdb_text):
             'gt_info': 14 points xy cordinates of each polygon box, size = (M,28)
         """
         labels = []
-        with open(filename.strip(), 'r') as fs, open(images_path.strip(),'r') as pimgs:
+        with open(filename.strip(), 'r') as fs, open(images_path.strip(), 'r') as pimgs:
             files = fs.readlines()
             imgs_path = pimgs.readlines()
             assert(len(files) == len(imgs_path)), 'image lists and labels list should be the same.'
+            assert(cfg.NUM_IMAGES <= len(files)), 'NUM_IMAGES should be no larger than image lists number'
+            if cfg.NUM_IMAGES != -1:
+                files = files[:cfg.NUM_IMAGES]
+                imgs_path = imgs_path[:cfg.NUM_IMAGES]
             for ix, file in enumerate(files):
                 assert(os.path.basename(file.strip())[:-4] == os.path.basename(imgs_path[ix].strip())[:-4]), 'label list does not match image list'
                 label={}

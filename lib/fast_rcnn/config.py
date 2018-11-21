@@ -228,6 +228,9 @@ __C.GPU_ID = 0
 
 __C.USE_GPU_IN_CAFFE = False
 
+# Number of images to use, -1 for all
+__C.NUM_IMAGES = -1
+
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.
     If the directory does not exist, it is created.
