@@ -4195,10 +4195,11 @@ layer {
 
 layer {
    name: "loss_bbox"
-   type: "SmoothL1LossOHEM"  # we don't use ohem. 
+   type: "SmoothL1Loss"
    bottom: "bbox_pred"
    bottom: "bbox_targets"
    bottom: "bbox_inside_weights"
+   bottom: "bbox_outside_weights"
    top: "loss_bbox"
    loss_weight: 1
    loss_param {
@@ -4206,6 +4207,7 @@ layer {
         pre_fixed_normalizer: 128
    }
    propagate_down: true
+   propagate_down: false
    propagate_down: false
    propagate_down: false
 }
@@ -4225,9 +4227,10 @@ layer {
 
 layer{
     name:"loss_info_h"
-    type: "SmoothL1LossOHEM"  # we don't use ohem. 
+    type: "SmoothL1Loss"
     bottom: "info_syn_pred_h" 
     bottom: "info_targets_fgh"  
+    bottom: "info_inside_weights_fgh"
     bottom: "info_inside_weights_fgh"
     top: "info_loss_h"
     loss_weight: 1
@@ -4238,13 +4241,15 @@ layer{
     propagate_down: true
     propagate_down: false
     propagate_down: false
+    propagate_down: false
 }
 
 layer{
     name:"loss_info_w"
-    type: "SmoothL1LossOHEM"  # we don't use ohem.
+    type: "SmoothL1Loss"
     bottom: "info_syn_pred_w" 
     bottom: "info_targets_fgw"  
+    bottom: "info_inside_weights_fgw"
     bottom: "info_inside_weights_fgw"
     top: "info_loss_w"
     loss_weight: 1
@@ -4255,10 +4260,11 @@ layer{
     propagate_down: true
     propagate_down: false
     propagate_down: false
+    propagate_down: false
 }
 
-layer {
-    name: 'silence'
-    type: 'Silence'
-    bottom: 'bbox_outside_weights'
-}
+#layer {
+    #name: 'silence'
+    #type: 'Silence'
+   # bottom: 'bbox_outside_weights'
+#}
