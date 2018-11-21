@@ -88,7 +88,7 @@ def info_syn_transform_hw(ex_rois, gt_info):
     gt_p2w = gt_info[:, 2]
     gt_p3w = gt_info[:, 4]
     gt_p4w = gt_info[:, 6]
-    gt_p5w = gt_info[:, 8]
+    # gt_p5w = gt_info[:, 8]
     # gt_p6w = gt_info[:, 10]
     # gt_p7w = gt_info[:, 12]
     # gt_p8w = gt_info[:, 14]
