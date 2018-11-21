@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+set -x
+set -e
+
 it=$1
 
 ./tools/test_net.py --gpu 0 \

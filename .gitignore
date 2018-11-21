@@ -9,3 +9,5 @@ data
 output
 results
 tools/log.txt
+loss.log
+testPolygon.py
