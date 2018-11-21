@@ -4,11 +4,14 @@
 # pycharm
 .idea
 
-# Project
-#data
+# ######## Project
 output
 results
 tools/log.txt
 *.caffemodel
 loss.log
 testPolygon.py
+
+# data folder
+data/ctw1500
+data/testsort.py

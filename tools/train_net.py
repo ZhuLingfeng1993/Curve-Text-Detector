@@ -74,11 +74,11 @@ def combined_roidb(dataset):
     return imdb, roidb
 
 if __name__ == '__main__':
-    # run parameters
+    # ### run parameters
     # ctd
-    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 78000 --imdb ctw1500 --cfg experiments/cfgs/rfcn_ctd.yml --trainval_label data/ctw1500/train/trainval_label_curve.txt --trainval_image data/ctw1500/train/trainval.txt
+    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 3 --imdb ctw1500 --cfg experiments/cfgs/rfcn_ctd.yml --trainval_label data/ctw1500/train/trainval_label_curve.txt --trainval_image data/ctw1500/train/trainval.txt
     # icdar2015ch4
-    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 78000 --imdb icdar2015ch4 --cfg experiments/cfgs/rfcn_ctd.yml --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt --train_image_list data/icdar2015ch4/ch4_training_images.txt
+    # --gpu 0 --solver models/ctd/solver_ctd.prototxt --weights data/imagenet_models/ResNet-50-model.caffemodel --iters 3 --imdb icdar2015ch4 --cfg experiments/cfgs/rfcn_ctd.yml --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt --train_image_list data/icdar2015ch4/ch4_training_images.txt
     args = parse_args()
 
     print('Called with args:')

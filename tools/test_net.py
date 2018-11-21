@@ -53,9 +53,9 @@ def parse_args():
     parser.add_argument('--rpn_file', dest='rpn_file',
                         default=None, type=str)
 
-    parser.add_argument('--test_label', dest='test_label',
+    parser.add_argument('--test_label_list', dest='test_label_list',
                         help='place to save', default=None, type=str)
-    parser.add_argument('--test_image', dest='test_image',
+    parser.add_argument('--test_image_list', dest='test_image_list',
                         help='place to save', default=None, type=str)
 
     if len(sys.argv) == 1:
@@ -66,9 +66,30 @@ def parse_args():
     return args
 
 if __name__ == '__main__':
+    # ### run parameters
+
     # ctd
-    # --gpu 0 --def models/ctd/test_ctd_tloc.prototxt --net output/ctd_tloc.caffemodel --imdb ctw1500_test --cfg experiments/cfgs/rfcn_ctd.yml --test_label data/ctw1500/test/test_label_curve.txt --test_image data/ctw1500/test/test.txt
+    # --gpu 0 --def models/ctd/test_ctd_tloc.prototxt --net output/ctd_tloc.caffemodel --imdb ctw1500_test --cfg experiments/cfgs/rfcn_ctd.yml --test_label_list data/ctw1500/test/test_label_curve.txt --test_image_list data/ctw1500/test/test.txt
     #  --vis
+
+    # icdar2015ch4
+    '''
+    --gpu
+    0
+    --def
+    models/ctd/test_ctd_tloc.prototxt
+    --net
+    output/rfcn_ctd/icdar2015ch4/ctd_tloc_iter_3.caffemodel
+    --imdb
+    icdar2015ch4_test
+    --cfg
+    experiments/cfgs/rfcn_ctd.yml
+    --test_label
+    data/icdar2015ch4/Challenge4_Test_Task1_GT.txt
+    --test_image
+    data/icdar2015ch4/ch4_test_images.txt
+'''
+
     args = parse_args()
 
     print('Called with args:')
@@ -86,12 +107,12 @@ if __name__ == '__main__':
 
     dataset = {}
     dataset['name'] = args.imdb_name
-    if args.test_label is None:
+    if args.test_label_list is None:
         assert(0), 'Can not find test label list.'
-    if args.test_image is None:
+    if args.test_image_list is None:
         assert(0), 'Can not find test image list.'
-    dataset['label_file'] = args.test_label
-    dataset['image_file'] = args.test_image
+    dataset['label_list_file'] = args.test_label_list
+    dataset['image_list_file'] = args.test_image_list
 
     while not os.path.exists(args.caffemodel) and args.wait:
         print('Waiting for {} to exist...'.format(args.caffemodel))

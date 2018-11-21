@@ -4,6 +4,7 @@ set -e
 
 it=$1
 
+# ctd
 ./tools/test_net.py --gpu 0 \
   --def models/ctd/test_ctd_tloc.prototxt \
   --net output/ctd_tloc.caffemodel \
@@ -12,3 +13,13 @@ it=$1
   --test_label data/ctw1500/test/test_label_curve.txt \
   --test_image data/ctw1500/test/test.txt \
   # --vis 
+
+# icdar2015ch4
+./tools/test_net.py --gpu 0 \
+  --def models/ctd/test_ctd_tloc.prototxt \
+  --net output/rfcn_ctd/icdar2015ch4/ctd_tloc_iter_3.caffemodel \
+  --imdb icdar2015ch4_test \
+  --cfg experiments/cfgs/rfcn_ctd.yml \
+  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \
+  --test_image data/icdar2015ch4/ch4_test_images.txt \
+
