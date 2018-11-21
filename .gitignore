@@ -10,3 +10,5 @@ output
 results
 tools/log.txt
 *.caffemodel
+loss.log
+testPolygon.py

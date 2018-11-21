@@ -149,9 +149,46 @@ If you find our method or the dataset useful for your research, please cite
 
 查看网络结构: 添加了lstm, 使用smoothL1OHEM
 
-lstm似乎支持cpu, smoothL1, roipooling都不支持cpu
+convert, lstm,reverse支持cpu,BLSTM是LSTM的子类, cpu支持似乎有问题, softmaxLoss, smoothL1, roipooling都不支持cpu
 
-现在GPU上试试吧
+OHEM需要配合BoxAnnotatorOHEM, 详见`rfcn_end2end-model/train_agnostic_ohem.prototxt`
+
+暂时先不用OHEM, 改用smoothL1, 
+
+smoothL1需要4个输入, smoothL1OHEM需要三个, 根据对in/outside weight的分析, 对于RCNN, 可以投机取巧地使用out = in
+
+softmax_loss_layer.c*相比rfcn, 多了对top数目大于1的处理, 由于我们用到的只有一个top, 故考虑将相关部分注释掉, 与RFCN保持一致
+
+# RCNN系列使用注意
+
+train:
+
+与一般不同: max_iter在`rfcn*.sh`设置,snapshot在`solver.prototxt`
+
+会显示训练和的平均速度
+
+test: 
+
+只在训练结束后进行一次测试, 而且是通过python程序调用检测评价代码实现的
+
+会显示测试的速度
+
+测试过程是一张一张进行的, 没有batch-size, 
+
+~~通过在solver中添加test_net可以做到在训练过程中测试, 但由于该版本caffe不支持检测的评价, ap-vesion, 只能输出分类准确率~~–由于test是对一张张图片进行的, 所以不能实现
+
+解决办法: 或者在python的训练代码中加入测试
+
+### 快速训练,测试代码
+
+```shell
+experiments/scripts/*.sh
+experiments/cfgs/*.yml
+lib/fast_rcnn/config.py
+solver.prototxt
+```
+
+修改使用数据集的图像数目: config.py NUM_IMAGES
 
 
 

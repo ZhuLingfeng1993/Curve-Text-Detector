@@ -59,6 +59,10 @@ class icdar2015ch4(imdb_text):
             label_files = fs.readlines()
             imgs_path = pimgs.readlines()
             assert (len(label_files) == len(imgs_path)), 'image lists and labels list should be the same.'
+            assert (cfg.NUM_IMAGES <= len(label_files)), 'NUM_IMAGES should be no larger than image lists number'
+            if cfg.NUM_IMAGES != -1:
+                label_files = label_files[:cfg.NUM_IMAGES]
+                imgs_path = imgs_path[:cfg.NUM_IMAGES]
             for ix, file in enumerate(label_files):
                 assert (os.path.basename(file.strip())[3:-4] == os.path.basename(imgs_path[ix].strip())[
                     :-4]), 'label list does not match image list'

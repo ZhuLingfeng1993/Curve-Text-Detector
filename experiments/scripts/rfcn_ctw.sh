@@ -15,7 +15,7 @@ EXTRA_ARGS=${array[@]:3:$len}
 EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 TRAIN_IMDB="ctw1500"
-ITERS=78000
+ITERS=3
 
 
 LOG="experiments/logs/rfcn_ctd_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
