@@ -32,4 +32,16 @@ time ./tools/train_net.py --gpu ${GPU_ID} \
   --trainval_image data/ctw1500/train/trainval.txt \
   ${EXTRA_ARGS} 
 
+# icdar2015ch4  replace \n with \\\n or replace \\\n with \n
+time ./tools/train_net.py   \
+  --gpu 3 \
+  --solver models/ctd/solver_ctd.prototxt \
+  --weights data/imagenet_models/ResNet-50-model.caffemodel \
+  --iters 100000 \
+  --imdb icdar2015ch4 \
+  --cfg experiments/cfgs/rfcn_ctd.yml \
+  --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt \
+  --train_image_list data/icdar2015ch4/ch4_training_images.txt \
+  ${EXTRA_ARGS} 
+
  

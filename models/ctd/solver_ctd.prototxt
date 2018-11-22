@@ -2,8 +2,8 @@ train_net: "models/ctd/train_ctd_tloc.prototxt"
 base_lr: 0.001
 lr_policy: "step"
 gamma: 0.1
-stepsize: 80000
-display: 1
+stepsize: 40000
+display: 50
 momentum: 0.9
 weight_decay: 0.0005
 # We disable standard caffe solver snapshotting and implement our own snapshot
