@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./experiments/scripts/rfcn_ctw.sh 0 ResNet-50 ctw1500
+./experiments/scripts/q_rfcn_tloc.sh 3 ResNet-50 icdar2015ch4
