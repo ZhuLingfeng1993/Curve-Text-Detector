@@ -133,15 +133,26 @@ If you find our method or the dataset useful for your research, please cite
 }
 ```
 
-# Requirement 
+# Installation 
 1. Clone this repository. ROOT is the directory where you clone.
+
 2. cd ROOT/caffe/  and use your own Makefile.config to compile (make all && make pycaffe). If you are using ubuntu 14.04, you may need to modify Makefile line 181 (hdf5_serial_hl hdf5_serial) to (hdf5 hdf5_hl).
-3. cd ROOT/lib make (based on python2)
+
+3. cd ROOT/lib make (based on python2) 
+
+   make *.c, *.so from \*.pyx/\*.c/\*.cu
+
 4. pip install shapely. (Enable computing polygon intersection.)
 
-# Installation
+
 
 参考py-R-FCN
+
+
+
+问题: 如何找到python 和 lib目录
+
+答: tools/下有_init_path.py, 将上述目录添加到系统路径, 省去了在~/.bashrc配置的步骤
 
 # Installation supporting cpu-only
 
@@ -190,7 +201,17 @@ solver.prototxt
 
 修改使用数据集的图像数目: config.py NUM_IMAGES
 
+# 切换CPU-only/GPU
 
+`config.py`或cfg文件 : GPU相关选项
+
+caffe的Makefile.config: CPU only相关, 或者直接使用我已经写好的caffe-ssd的Makefile.config
+
+重新编译: [Installation](#Installation) 2,3
+
+# git
+
+注意CTD与caffe不是submodule关系, 而是用CTD下的git进行统一管理
 
 ## Feedback
 Suggestions and opinions of this dataset (both positive and negative) are greatly welcome. Please contact the authors by sending email to
