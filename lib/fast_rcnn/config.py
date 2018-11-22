@@ -221,12 +221,12 @@ __C.MATLAB = 'matlab'
 __C.EXP_DIR = 'default'
 
 # Use GPU implementation of non-maximum suppression
-__C.USE_GPU_NMS = False
+__C.USE_GPU_NMS = True
 
 # Default GPU device id
 __C.GPU_ID = 0
 
-__C.USE_GPU_IN_CAFFE = False
+__C.USE_GPU_IN_CAFFE = True
 
 # Number of images to use, -1 for all
 __C.NUM_IMAGES = -1
