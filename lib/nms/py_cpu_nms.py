@@ -33,6 +33,7 @@ def py_cpu_nms(dets, thresh):
 
 # Written by yl
 def py_cpu_pnms(dets, thresh):
+    """Polygonal non-maximum suppression(PNMS)"""
     bbox = dets[:, :4]
     scores = dets[:, 4]
     info_bbox = dets[:, 5:33] # syn
