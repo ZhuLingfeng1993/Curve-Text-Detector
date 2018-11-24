@@ -10,9 +10,10 @@ import cPickle
 from utils.blob import im_list_to_blob
 import os
 
-import re 
+import re
 from shapely.geometry import *
 import matplotlib.pyplot as plts
+
 
 def _get_image_blob(im):
     """Converts an image into a network input.
@@ -50,6 +51,7 @@ def _get_image_blob(im):
 
     return blob, np.array(im_scale_factors)
 
+
 def _get_rois_blob(im_rois, im_scale_factors):
     """Converts RoIs into network inputs.
 
@@ -63,6 +65,7 @@ def _get_rois_blob(im_rois, im_scale_factors):
     rois, levels = _project_im_rois(im_rois, im_scale_factors)
     rois_blob = np.hstack((levels, rois))
     return rois_blob.astype(np.float32, copy=False)
+
 
 def _project_im_rois(im_rois, scales):
     """Project image RoIs into the image pyramid built by _get_image_blob.
@@ -92,29 +95,44 @@ def _project_im_rois(im_rois, scales):
 
     return rois, levels
 
+
 def _get_blobs(im, rois):
     """Convert an image and RoIs within that image into network inputs."""
-    blobs = {'data' : None, 'rois' : None}
+    blobs = {'data': None, 'rois': None}
     blobs['data'], im_scale_factors = _get_image_blob(im)
     if not cfg.TEST.HAS_RPN:
         blobs['rois'] = _get_rois_blob(rois, im_scale_factors)
     return blobs, im_scale_factors
 
+
 def im_detect(net, im, boxes=None, info=False):
     """Detect object classes in an image given object proposals.
+    Steps:(RPN, quadrilateral)
+        # get network input: data, im_info.
+        # reshape network inputs.
+        # do forward.
+        # Apply bounding-box regression deltas.
+        # Clip boxes to image boundaries.
+        # Remove predicted boxes with either height or width < threshold.(not implemented)
+        # Apply quadrilateral points regression deltas.
+        # Clip quadrilateral to image boundaries.(not implemented)
 
     Arguments:
         net (caffe.Net): Fast R-CNN network to use
         im (ndarray): color image to test (in BGR order)
         boxes (ndarray): R x 4 array of object proposals or None (for RPN)
+        info           : use quadrilateral
 
     Returns:
         scores (ndarray): R x K array of object class scores (K includes
             background as object category 0)
         boxes (ndarray): R x (4*K) array of predicted bounding boxes
+        pred_infos_h (ndarray): R x 4 array of predicted 4 quadrilateral points' h/y coordinates,
+        pred_infos_w (ndarray): R x 4 array of predicted 4 quadrilateral points' w/x coordinates
     """
     blobs, im_scales = _get_blobs(im, boxes)
 
+    # Remove duplicate ROIs
     # When mapping from image ROIs to feature map ROIs, there's some aliasing
     # (some distinct image ROIs get mapped to the same feature ROI).
     # Here, we identify duplicate feature ROIs, so we only compute features
@@ -166,6 +184,7 @@ def im_detect(net, im, boxes=None, info=False):
         # Apply bounding-box regression deltas
         box_deltas = blobs_out['bbox_pred']
         pred_boxes = bbox_transform_inv(boxes, box_deltas)
+        # Clip boxes to image boundaries.
         pred_boxes = clip_boxes(pred_boxes, im.shape)
     else:
         # Simply repeat the boxes, once for each class
@@ -176,19 +195,19 @@ def im_detect(net, im, boxes=None, info=False):
         scores = scores[inv_index, :]
         pred_boxes = pred_boxes[inv_index, :]
 
-    ############################################### curve
+    # Apply quadrilateral points regression deltas
     if info:
         info_deltas_h = blobs_out['info_pred_h']
         pred_infos_h = info_syn_transform_inv_h(boxes, info_deltas_h)
         info_deltas_w = blobs_out['info_pred_w']
         pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
         assert len(boxes) == len(pred_infos_h) == len(pred_infos_w)
-    ###############################################
 
     if info:
         return scores, pred_boxes, pred_infos_h, pred_infos_w
     else:
         return scores, pred_boxes, None
+
 
 def vis_detections(im, class_name, dets, thresh=0.3):
     """Visual debugging of detections."""
@@ -205,9 +224,10 @@ def vis_detections(im, class_name, dets, thresh=0.3):
                               bbox[2] - bbox[0],
                               bbox[3] - bbox[1], fill=False,
                               edgecolor='g', linewidth=3)
-                )
+            )
             plt.title('{}  {:.3f}'.format(class_name, score))
             plt.show()
+
 
 # use opencv
 def vis_detections_opencv(im, class_name, dets, thresh=0.3):
@@ -216,53 +236,61 @@ def vis_detections_opencv(im, class_name, dets, thresh=0.3):
         bbox = dets[i, :4]
         score = dets[i, -1]
         if score > thresh:
-            cv2.rectangle(im,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0,0,255), 2)
-    im = cv2.resize(im, (1280, 720))            
+            cv2.rectangle(im, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255), 2)
+    im = cv2.resize(im, (1280, 720))
     cv2.imshow('Dectecting results.', im)
     cv2.waitKey(0)
+
 
 def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
     """Visual debugging of detections."""
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, 4]
-        info_bbox = dets[i, 5:33] # syn
-        pts = [info_bbox[i] for i in xrange(28)]
+        info_bbox = dets[i, 5:13]  # syn
+        pts = [info_bbox[i] for i in xrange(8)]
         # print pts
         # a = input('stop check')
-        assert(len(pts) == 28), 'wrong length.'
+        assert (len(pts) == 8), 'wrong length.'
         if score > thresh:
-            for p in xrange(0,28,2):
+            for p in xrange(0, 8, 2):
                 # if p == 0:
-                #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])), 
-                #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2) 
+                #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
+                #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
                 # else:
-                cv2.line(im,(int(bbox[0]) + int(pts[p%28]), int(bbox[1]) + int(pts[(p+1)%28])), 
-                             (int(bbox[0]) + int(pts[(p+2)%28]), int(bbox[1]) + int(pts[(p+3)%28])),(0,0,255),2) 
+                cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
+                         (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
 
-    imk = cv2.resize(im, (1280, 720)) # visualization
+    imk = cv2.resize(im, (1280, 720))  # visualization
     cv2.imshow('Dectecting results syn.', imk)
     cv2.waitKey(0)
 
+
 def nps(dets, cdets):
+    """
+    None-polygon suppression(NPS)
+    Keep valid polygons with area > threshold
+    """
     delete_inds = []
+    area_thresh = 1
     for i in xrange(cdets.shape[0]):
         bbox = cdets[i, :4]
         score = cdets[i, 4]
-        info_bbox = cdets[i, 5:33]
-        pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j+1]) for j in xrange(0,28,2)]
+        info_bbox = cdets[i, 5:13]
+        pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j + 1]) for j in xrange(0, 8, 2)]
 
         # print('try ploygon test')
         ploygon_test = Polygon(pts)
         if not ploygon_test.is_valid:
             print('non-ploygon detected')
             delete_inds.append(i)
-        if int(ploygon_test.area) < 10:
-            print('neg-ploygon')
+        if int(ploygon_test.area) < area_thresh:
+            print('neg-ploygon detected')
             delete_inds.append(i)
     dets = np.delete(dets, delete_inds, 0)
     cdets = np.delete(cdets, delete_inds, 0)
     return dets, cdets
+
 
 def apply_nms(all_boxes, thresh):
     """Apply non-maximum suppression to all predicted boxes output by the
@@ -286,28 +314,53 @@ def apply_nms(all_boxes, thresh):
             nms_boxes[cls_ind][im_ind] = dets[keep, :].copy()
     return nms_boxes
 
+
 def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
-    """Test a Fast R-CNN network on an image database."""
+    """Test a Fast R-CNN network on an image database.
+    Steps:
+        for i in xrange(num_images):
+            # Read image
+            # Detect core
+                # get network input: data, im_info.
+                # reshape network inputs.
+                # do forward.
+                # Apply bounding-box regression deltas.
+                # Clip boxes to image boundaries.
+                # Remove predicted boxes with either height or width < threshold.(not implemented)
+                # Apply quadrilateral points regression deltas.
+                # Clip quadrilateral to image boundaries.(not implemented)
+            for j in xrange(1, imdb.num_classes):
+                # Keep boxes with score > threshold
+                # None-polygon suppression(NPS): Keep valid polygons with area > threshold
+                # NMS or Polygonal non-maximum suppression(PNMS)
+            # Limit to max_per_image detections *over all classes*
+        # Save detections
+        # Evaluating detections
+            self._qua_write_voc_results_file(all_boxes)
+            self._do_python_eval(output_dir)
+    """
     num_images = len(imdb._image_index)
     # all detections are collected into:
-    #    all_boxes[cls][image] = N x 5 array of detections in
+    #    all_boxes[cls][image] = K x N x 5 array of detections in
     #    (x1, y1, x2, y2, score)
+    #    all_boxes_info[cls][image] = K x N x (5 + 8) array of detections in
+    #    (x_min, y_min, x_max, y_max, score, px1, py1, ..., px4, py4)
     all_boxes = [[[] for _ in xrange(num_images)]
                  for _ in xrange(imdb.num_classes)]
     all_boxes_info = [[[] for _ in xrange(num_images)]
-                 for _ in xrange(imdb.num_classes)]
+                      for _ in xrange(imdb.num_classes)]
 
     output_dir = get_output_dir(imdb, net)
-    cnt=0
-    cnt1=0
-    cnt2=2
+    cnt = 0
+    cnt1 = 0
+    cnt2 = 2
 
     # timers
-    _t = {'im_detect' : Timer(), 'misc' : Timer()}
+    _t = {'im_detect': Timer(), 'misc': Timer()}
 
     if not cfg.TEST.HAS_RPN:
         roidb = imdb.roidb
-    cnt=0
+    cnt = 0
     for i in xrange(num_images):
         # filter out any ground truth boxes
         if cfg.TEST.HAS_RPN:
@@ -319,69 +372,74 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
             # that have the gt_classes field set to 0, which means there's no
             # ground truths.
             box_proposals = roidb[i]['boxes'][roidb[i]['gt_classes'] == 0]
-
+        # Read image
         im = cv2.imread(imdb.image_path_at(i))
         print imdb.image_path_at(i)
         _t['im_detect'].tic()
-        scores, boxes, infos_h, infos_w = im_detect(net, im, box_proposals, info = True) 
+        # Detect core
+        scores, boxes, infos_h, infos_w = im_detect(net, im, box_proposals, info=True)
         _t['im_detect'].toc()
         _t['misc'].tic()
 
         for j in xrange(1, imdb.num_classes):
-            assert(scores.shape[0] == infos_h.shape[0] == infos_w.shape[0]) , 'length mismatch'
-            inds = np.where(scores[:, j] > 0.5)[0]
-
+            assert (scores.shape[0] == infos_h.shape[0] == infos_w.shape[0]), 'length mismatch'
+            # keep boxes with score > threshold
+            inds = np.where(scores[:, j] > 0.4)[0]
             ind_35 = np.where((scores[:, j] > 0.3))[0]
-            
-            print "thresh>0.5:   ",len(inds)
-            print "0.5>thresh>0.3:   ",len(ind_35)
-            print "all:   ",len(scores[:,j])
-
-            cnt+=len(inds)
-            cnt1+=len(ind_35)
-            cnt2+=len(scores[:,j])
+            print "thresh>0.5:   ", len(inds)
+            print "0.5>thresh>0.3:   ", len(ind_35)
+            print "all:   ", len(scores[:, j])
+            cnt += len(inds)
+            cnt1 += len(ind_35)
+            cnt2 += len(scores[:, j])
+            # keep inds
             cls_scores = scores[inds, j]
-            
+
             if cfg.TEST.AGNOSTIC:
                 cls_boxes = boxes[inds, 4:8]
                 ## SYN
-                cls_infos_h = infos_h[inds, :14]
-                cls_infos_w = infos_w[inds, :14]
+                cls_infos_h = infos_h[inds, :4]
+                cls_infos_w = infos_w[inds, :4]
             else:
                 pass
                 # cls_boxes = boxes[inds, j*4:(j+1)*4]
                 # cls_infos_h = infos_h[inds, :j*14]
                 # cls_infos_w = infos_w[inds, :j*14]
-
+            # detections with class score: (x1, y1, x2, y2, score)
             cls_dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])) \
                 .astype(np.float32, copy=False)
 
             # stack h and w pred.
-            cls_infos = np.zeros((cls_infos_h.shape[0], 28))
-            wh_stack_temp = np.dstack((cls_infos_w, cls_infos_h))  
-            assert(wh_stack_temp.shape[0] == cls_infos.shape[0]), 'wh stack length mismatch.'
+            cls_infos = np.zeros((cls_infos_h.shape[0], 8))
+            wh_stack_temp = np.dstack((cls_infos_w, cls_infos_h))
+            assert (wh_stack_temp.shape[0] == cls_infos.shape[0]), 'wh stack length mismatch.'
             for ixstack, row_cls_infos in enumerate(cls_infos):
                 cls_infos[ixstack] = wh_stack_temp[ixstack].ravel()
 
             # if 1:
-                # print(cls_infos)
-                # debug = input('debug test.py check cls_infos stack.')
+            # print(cls_infos)
+            # debug = input('debug test.py check cls_infos stack.')
 
+            # detections with class score and (quadirlateral)info:
+            # (x_min, y_min, x_max, y_max, score, px1, py1, ..., px4, py4)
             cls_dets_withInfo = np.hstack((cls_boxes, cls_scores[:, np.newaxis], cls_infos)) \
                 .astype(np.float32, copy=False)
-            
+
+            # None-polygon suppression(NPS)
             cls_dets, cls_dets_withInfo = nps(cls_dets, cls_dets_withInfo)
+
             if cfg.TEST.USE_PNMS:
+                # Polygonal non-maximum suppression(PNMS)
                 keep = pnms(cls_dets_withInfo, cfg.TEST.PNMS)
             else:
                 keep = nms(cls_dets, cfg.TEST.NMS)
             cls_dets = cls_dets[keep, :]
             cls_dets_withInfo = cls_dets_withInfo[keep, :]
-            
-            if vis: 
+
+            if vis:
                 # vis_detections_opencv(im, imdb.classes[j], cls_dets)
                 syn_vis_detections_opencv(im, imdb.classes[j], cls_dets_withInfo, imdb.image_path_at(i), 0.1)
-                
+
             all_boxes[j][i] = cls_dets
             all_boxes_info[j][i] = cls_dets_withInfo
 
@@ -400,13 +458,13 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
         _t['misc'].toc()
 
         print 'im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
-              .format(i + 1, num_images, _t['im_detect'].average_time,
-                      _t['misc'].average_time)
-
+            .format(i + 1, num_images, _t['im_detect'].average_time,
+                    _t['misc'].average_time)
+    # Save detections
     det_file = os.path.join(output_dir, 'detections.pkl')
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes_info, f, cPickle.HIGHEST_PROTOCOL)
-
+    # Evaluating detections
     print 'Evaluating detections'
-    imdb.evaluate_detections(all_boxes_info, output_dir) 
-    print "avg proposals>0.5:  ",cnt/num_images," 0.3--0.5:  ",cnt1/num_images,"all:  ",cnt2/num_images
+    imdb.evaluate_detections(all_boxes_info, output_dir)
+    print "avg proposals>0.5:  ", cnt / num_images, " 0.3--0.5:  ", cnt1 / num_images, "all:  ", cnt2 / num_images

@@ -1,3 +1,4 @@
+# coding=utf-8
 # --------------------------------------------------------
 # Fast/er R-CNN
 # Licensed under The MIT License [see LICENSE for details]
@@ -8,6 +9,7 @@
 import os
 import cPickle
 import numpy as np
+from fast_rcnn.config import cfg
 
 from shapely.geometry import *
 
@@ -43,6 +45,32 @@ def curve_parse_rec_txt(filename):
             obj_struct['name'] = 'text'
             obj_struct['difficult'] = 0
             obj_struct['bbox'] = [int(cors[i]) for i in xrange(32)]
+            objects.append(obj_struct)
+            # assert(0), obj_struct['bbox']
+    return objects
+
+def qua_parse_rec_txt(filename):
+    """ Parse a icdar2015ch4 txt file """
+    with open(filename.strip(),'r') as f:
+        # rm utf8 info
+        lightSen = []
+        for line in f.readlines():
+            if '\xef\xbb\xbf' in line:
+                str1 = line.replace('\xef\xbb\xbf', '')  # 用replace替换掉'\xef\xbb\xbf'
+                lightSen.append(str1.strip())  # strip()去掉\n
+            else:
+                lightSen.append(line.strip())
+
+        gts = lightSen
+        objects = []
+        for obj in gts:
+            cors = obj.strip().split(',')
+            # obj_struct['difficult'] =
+            obj_struct = {}
+            # class name
+            obj_struct['name'] = 'text'
+            obj_struct['difficult'] = 0
+            obj_struct['bbox'] = [int(cors[i]) for i in xrange(8)]
             objects.append(obj_struct)
             # assert(0), obj_struct['bbox']
     return objects
@@ -270,13 +298,15 @@ def voc_eval_polygon(detpath,
     imagenames = [x.strip() for x in lines]
     anno_names = [y.strip() for y in anno_lines]
     assert(len(imagenames) == len(anno_names)), 'each image should correspond to one label file'
-
     if not os.path.isfile(cachefile):
         # load annots
         recs = {}
         for i, imagename in enumerate(imagenames):
             print(anno_names[i].strip())
-            recs[imagename] = curve_parse_rec_txt(anno_names[i])
+            # recs[imagename] = curve_parse_rec_txt(anno_names[i])
+            # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
+            anno_names[i] = os.path.join(cfg.DATA_DIR, anno_names[i])
+            recs[imagename] = qua_parse_rec_txt(anno_names[i])
             if i % 100 == 0:
                 print 'Reading annotation for {:d}/{:d}'.format(
                     i + 1, len(imagenames))
@@ -329,8 +359,8 @@ def voc_eval_polygon(detpath,
     for d in range(nd):
         R = class_recs[image_ids[d]]
         bb = BB[d, :].astype(float)
-        det_bbox = bb[:28]
-        pts = tuple([(det_bbox[i], det_bbox[i+1]) for i in range(0,28,2)])
+        det_bbox = bb[:8]
+        pts = tuple([(det_bbox[i], det_bbox[i+1]) for i in range(0,8,2)])
         # pts = ((det_bbox[0], det_bbox[1]), (det_bbox[2], det_bbox[3]), (det_bbox[4], det_bbox[5]), (det_bbox[6], det_bbox[7]), (det_bbox[8], det_bbox[9]), (det_bbox[10], det_bbox[11]), (det_bbox[12], det_bbox[13]),
         #        (det_bbox[14], det_bbox[15]), (det_bbox[16], det_bbox[17]), (det_bbox[18], det_bbox[19]), (det_bbox[20], det_bbox[21]), (det_bbox[22], det_bbox[23]), (det_bbox[24], det_bbox[25]), (det_bbox[26], det_bbox[27]))
         pdet = Polygon(pts)
@@ -343,11 +373,11 @@ def voc_eval_polygon(detpath,
         BBGT = R['bbox'].astype(float)
         # print(BBGT)
         gt_bbox = BBGT[:, :4]
-        info_bbox_gt = BBGT[:, 4:32]
+        info_bbox_gt = BBGT[:, 0:8]
         ls_pgt = [] 
         overlaps = np.zeros(BBGT.shape[0])
         for iix in xrange(BBGT.shape[0]):
-            pts = [(int(gt_bbox[iix, 0]) + info_bbox_gt[iix, j], int(gt_bbox[iix, 1]) + info_bbox_gt[iix, j+1]) for j in xrange(0,28,2)]
+            pts = [(int(gt_bbox[iix, 0]) + info_bbox_gt[iix, j], int(gt_bbox[iix, 1]) + info_bbox_gt[iix, j+1]) for j in xrange(0,8,2)]
             pgt = Polygon(pts)
             if not pgt.is_valid: 
                 print('GT polygon has intersecting sides.')

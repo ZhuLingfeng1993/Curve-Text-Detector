@@ -24,7 +24,7 @@ class icdar2015ch4(imdb_text):
         self._image_list_file = dataset['image_list_file']
         self._classes = ('__background__', 'text')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        self._salt = str(uuid.uuid4())
+        self._salt = str(uuid.uuid4()) # 通用唯一识别码（Universally Unique Identifier）
         self._comp_id = 'comp4'
 
         # PASCAL specific config options
@@ -67,6 +67,7 @@ class icdar2015ch4(imdb_text):
                 assert (os.path.basename(file.strip())[3:-4] == os.path.basename(imgs_path[ix].strip())[
                     :-4]), 'label list does not match image list'
                 label = {}
+                # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
                 label_file = os.path.join(cfg.DATA_DIR, file.strip())
                 label['name'] = label_file
                 label['imagePath'] = os.path.join(cfg.DATA_DIR, imgs_path[ix].strip())  # image path
@@ -309,8 +310,10 @@ class icdar2015ch4(imdb_text):
 
     def evaluate_detections(self, all_boxes, output_dir):
         self.output_dir = output_dir
-        self._curve_write_voc_results_file(all_boxes)
+        # self._curve_write_voc_results_file(all_boxes)
+        self._qua_write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir)
+
 
     def competition_mode(self, on):
         if on:
