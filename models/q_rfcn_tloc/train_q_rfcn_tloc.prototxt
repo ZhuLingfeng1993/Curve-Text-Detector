@@ -3924,7 +3924,7 @@ layer {
     bottom: "cont_sentence_h"
     top: "lstm1_h"
     recurrent_param {
-        num_output: 128 # why?
+        num_output: 42 # 128 # why?
         weight_filler {
             type: "xavier"
         }
@@ -3960,7 +3960,7 @@ layer {
     bottom: "rlstm1_cont_sentence_h"
     top: "rlstm2_h"
     recurrent_param {
-        num_output: 128
+        num_output: 42 # 128
         weight_filler {
             type: "xavier"
         }
@@ -4024,9 +4024,9 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 256 # lstm1_h(num_output) + lstm2_h(num_output)
+        kernel_w: 84 # 256 # lstm1_h(num_output) + lstm2_h(num_output)
         kernel_h: 1
-        stride_w: 256 # same as kernel_w
+        stride_w: 84 # 256 # same as kernel_w
         stride_h: 1
     }
 }
@@ -4075,7 +4075,7 @@ layer {
     bottom: "cont_sentence_w"
     top: "lstm1_w"
     recurrent_param {
-        num_output: 128
+        num_output: 42 # 128
         weight_filler {
             type: "xavier"
         }
@@ -4111,7 +4111,7 @@ layer {
     bottom: "rlstm1_cont_sentence_w"
     top: "rlstm2_w"
     recurrent_param {
-        num_output: 128
+        num_output: 42 # 128
         weight_filler {
             type: "xavier"
         }
@@ -4174,9 +4174,9 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 256
+        kernel_w: 84 # 256
         kernel_h: 1
-        stride_w: 256
+        stride_w: 84 # 256
         stride_h: 1
     }
 }
