@@ -64,10 +64,31 @@ def bbox_transform_inv(boxes, deltas):
 def info_syn_transform_hw(ex_rois, gt_info):
     ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
     ex_heights = ex_rois[:, 3] - ex_rois[:, 1] + 1.0
-    ex_ctr_x = ex_rois[:, 0] + 0.5 * ex_widths
-    ex_ctr_y = ex_rois[:, 1] + 0.5 * ex_heights
+    # ex_ctr_x = ex_rois[:, 0] + 0.5 * ex_widths
+    # ex_ctr_y = ex_rois[:, 1] + 0.5 * ex_heights
 
     assert gt_info.shape[1] == 8, 'length does not match gt_info'
+    
+    # lt = ex_rois[:, 0:2]
+    # rt = np.hstack(ex_rois[:, 2] ,ex_rois[:, 1])
+    # rb = ex_rois[:, 2:4]
+    # lb = np.hstack(ex_rois[:, 0], ex_rois[:, 3])
+    # 
+    # 
+    # target = gt_info - ex_qua
+    # target[:, 0::2] /= ex_widths
+    # target[:, 1::2] /= ex_heights
+    # target_w = target[:, 0::2]/ex_widths
+    # target_h = target[:, 1::2]/ex_heights
+    ex_p1w = ex_rois[:, 0]
+    ex_p2w = ex_rois[:, 2]
+    ex_p3w = ex_rois[:, 2]
+    ex_p4w = ex_rois[:, 0]
+    ex_p1h = ex_rois[:, 1]
+    ex_p2h = ex_rois[:, 1]
+    ex_p3h = ex_rois[:, 3]
+    ex_p4h = ex_rois[:, 3]
+
 
     gt_p1h = gt_info[:, 1]
     gt_p2h = gt_info[:, 3]
@@ -99,11 +120,21 @@ def info_syn_transform_hw(ex_rois, gt_info):
     # gt_p13w = gt_info[:, 24]
     # gt_p14w = gt_info[:, 26]
 
+    targets_dp1h = ( gt_p1h - ex_p1h) * 0.5 / ex_heights
+    targets_dp2h = ( gt_p2h - ex_p2h) * 0.5 / ex_heights
+    targets_dp3h = ( gt_p3h - ex_p3h) * 0.5 / ex_heights
+    targets_dp4h = ( gt_p4h - ex_p4h) * 0.5 / ex_heights
+    
+    targets_dp1w = ( gt_p1w - ex_p1w) * 0.5 / ex_widths
+    targets_dp2w = ( gt_p2w - ex_p2w) * 0.5 / ex_widths
+    targets_dp3w = ( gt_p3w - ex_p3w) * 0.5 / ex_widths
+    targets_dp4w = ( gt_p4w - ex_p4w) * 0.5 / ex_widths
+
     # why 0.5? different from paper
-    targets_dp1h = ( gt_p1h - ex_heights) * 0.5 / ex_heights
-    targets_dp2h = ( gt_p2h - ex_heights) * 0.5 / ex_heights
-    targets_dp3h = ( gt_p3h - ex_heights) * 0.5 / ex_heights
-    targets_dp4h = ( gt_p4h - ex_heights) * 0.5 / ex_heights
+    # targets_dp1h = ( gt_p1h - ex_heights) * 0.5 / ex_heights
+    # targets_dp2h = ( gt_p2h - ex_heights) * 0.5 / ex_heights
+    # targets_dp3h = ( gt_p3h - ex_heights) * 0.5 / ex_heights
+    # targets_dp4h = ( gt_p4h - ex_heights) * 0.5 / ex_heights
     # targets_dp5h = ( gt_p5h - ex_heights) * 0.5 / ex_heights
     # targets_dp6h = ( gt_p6h - ex_heights) * 0.5 / ex_heights
     # targets_dp7h = ( gt_p7h - ex_heights) * 0.5 / ex_heights
@@ -115,10 +146,10 @@ def info_syn_transform_hw(ex_rois, gt_info):
     # targets_dp13h = ( gt_p13h - ex_heights) * 0.5 / ex_heights
     # targets_dp14h = ( gt_p14h - ex_heights) * 0.5 / ex_heights
 
-    targets_dp1w = ( gt_p1w - ex_widths) * 0.5 / ex_widths
-    targets_dp2w = ( gt_p2w - ex_widths) * 0.5 / ex_widths
-    targets_dp3w = ( gt_p3w - ex_widths) * 0.5 / ex_widths
-    targets_dp4w = ( gt_p4w - ex_widths) * 0.5 / ex_widths
+    # targets_dp1w = ( gt_p1w - ex_widths) * 0.5 / ex_widths
+    # targets_dp2w = ( gt_p2w - ex_widths) * 0.5 / ex_widths
+    # targets_dp3w = ( gt_p3w - ex_widths) * 0.5 / ex_widths
+    # targets_dp4w = ( gt_p4w - ex_widths) * 0.5 / ex_widths
     # targets_dp5w = ( gt_p5w - ex_widths) * 0.5 / ex_widths
     # targets_dp6w = ( gt_p6w - ex_widths) * 0.5 / ex_widths
     # targets_dp7w = ( gt_p7w - ex_widths) * 0.5 / ex_widths
