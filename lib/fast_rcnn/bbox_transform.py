@@ -99,6 +99,7 @@ def info_syn_transform_hw(ex_rois, gt_info):
     # gt_p13w = gt_info[:, 24]
     # gt_p14w = gt_info[:, 26]
 
+    # why 0.5? different from paper
     targets_dp1h = ( gt_p1h - ex_heights) * 0.5 / ex_heights
     targets_dp2h = ( gt_p2h - ex_heights) * 0.5 / ex_heights
     targets_dp3h = ( gt_p3h - ex_heights) * 0.5 / ex_heights

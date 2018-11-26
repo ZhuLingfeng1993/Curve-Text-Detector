@@ -33,4 +33,16 @@ time ./tools/train_net.py   \
   --train_image_list data/icdar2015ch4/ch4_training_images.txt \
   ${EXTRA_ARGS}
 
+# for python command  
+time ./tools/train_net.py   
+  --gpu 3
+  --solver models/q_rfcn_tloc/solver_cpu_fast_version_q_rfcn_tloc.prototxt 
+  --weights data/imagenet_models/ResNet-50-model.caffemodel 
+  --iters 3
+  --imdb "icdar2015ch4"
+  --cfg experiments/cfgs/cpu_fast_version_q_rfcn_tloc.yml 
+  --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt 
+  --train_image_list data/icdar2015ch4/ch4_training_images.txt 
+
+
 
