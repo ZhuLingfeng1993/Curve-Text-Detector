@@ -1,5 +1,6 @@
 from fast_rcnn.config import cfg, get_output_dir
 from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv, info_syn_transform_inv_h, info_syn_transform_inv_w
+from fast_rcnn.bbox_transform import qua_transform_inv
 import argparse
 from utils.timer import Timer
 import numpy as np
@@ -198,9 +199,10 @@ def im_detect(net, im, boxes=None, info=False):
     # Apply quadrilateral points regression deltas
     if info:
         info_deltas_h = blobs_out['info_pred_h']
-        pred_infos_h = info_syn_transform_inv_h(boxes, info_deltas_h)
+        # pred_infos_h =info_syn_transform_inv_h(boxes, info_deltas_h)
         info_deltas_w = blobs_out['info_pred_w']
-        pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
+        # pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
+        pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
         assert len(boxes) == len(pred_infos_h) == len(pred_infos_w)
 
     if info:
