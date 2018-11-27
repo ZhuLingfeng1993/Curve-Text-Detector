@@ -111,6 +111,23 @@ class icdar2015ch4(imdb_text):
                 label['gt_boxes'] = box
                 label['gt_info'] = gt_info  # syn
 
+                vis = False
+                # vis image and label
+                if vis:
+                    # detections with class score: (x1, y1, x2, y2, score)
+                    cls_dets = np.hstack((box, np.ones(box.shape[0])[:, np.newaxis])) \
+                        .astype(np.float32, copy=False)
+
+                    cls_dets_withInfo = np.hstack((cls_dets, gt_info)) \
+                        .astype(np.float32, copy=False)
+                    from fast_rcnn.test import vis_detections, vis_detections_opencv, test_syn_vis_detections_opencv
+                    import cv2
+                    # Read image
+                    im = cv2.imread(label['imagePath'])
+                    #vis_detections(im, 'text', cls_dets)
+                    #vis_detections_opencv(im, 'text', cls_dets)
+                    test_syn_vis_detections_opencv(im, 'text', cls_dets_withInfo, None)
+
                 labels.append(label)
         print "load images number = {}".format(len(labels))
         return labels

@@ -1,5 +1,6 @@
 from fast_rcnn.config import cfg, get_output_dir
 from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv, info_syn_transform_inv_h, info_syn_transform_inv_w
+from fast_rcnn.bbox_transform import qua_transform_inv
 import argparse
 from utils.timer import Timer
 import numpy as np
@@ -198,9 +199,10 @@ def im_detect(net, im, boxes=None, info=False):
     # Apply quadrilateral points regression deltas
     if info:
         info_deltas_h = blobs_out['info_pred_h']
-        pred_infos_h = info_syn_transform_inv_h(boxes, info_deltas_h)
+        # pred_infos_h =info_syn_transform_inv_h(boxes, info_deltas_h)
         info_deltas_w = blobs_out['info_pred_w']
-        pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
+        # pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
+        pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
         assert len(boxes) == len(pred_infos_h) == len(pred_infos_w)
 
     if info:
@@ -261,10 +263,35 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
                 cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
                          (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
 
+
     imk = cv2.resize(im, (1280, 720))  # visualization
     cv2.imshow('Dectecting results syn.', imk)
     cv2.waitKey(0)
 
+def test_syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
+    """Visual debugging of detections."""
+    for i in xrange(np.minimum(100, dets.shape[0])):
+        bbox = dets[i, :4]
+        score = dets[i, 4]
+        info_bbox = dets[i, 5:13]  # syn
+        pts = [info_bbox[i] for i in xrange(8)]
+        # print pts
+        # a = input('stop check')
+        assert (len(pts) == 8), 'wrong length.'
+        if score > thresh:
+            for p in xrange(0, 8, 2):
+                # if p == 0:
+                #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
+                #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
+                # else:
+                # cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
+                #          (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
+                cv2.line(im, (int(pts[p % 8]), int(pts[(p + 1) % 8])),
+                         (int(pts[(p + 2) % 8]),  int(pts[(p + 3) % 8])), (0, 0, 255), 2)
+
+    imk = cv2.resize(im, (1280, 720))  # visualization
+    cv2.imshow('Dectecting results syn.', imk)
+    cv2.waitKey(3000)
 
 def nps(dets, cdets):
     """
