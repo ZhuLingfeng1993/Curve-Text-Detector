@@ -3779,7 +3779,7 @@ layer {
     name: "rfcn_bbox_info_h"
     type: "Convolution"
     convolution_param {
-        num_output: 784 # 1*14*(7^2) fg_cls_num*cors*(score_maps_size^2)
+        num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
         kernel_size: 1
         pad: 0
         weight_filler {
@@ -3804,7 +3804,7 @@ layer {
     name: "rfcn_bbox_info_w"
     type: "Convolution"
     convolution_param {
-        num_output: 784 # 1*14*(7^2) cls_num*cors*(score_maps_size^2)
+        num_output: 784 # 1*16*(7^2) cls_num*cors*(score_maps_size^2)
         kernel_size: 1
         pad: 0
         weight_filler {
