@@ -34,8 +34,8 @@ def get_minibatch(roidb, num_classes):
         gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
 
         # quadrilateral
-        gt_info = np.empty((len(gt_inds), 8), dtype = np.float32)
-        gt_info[:, :8] = roidb[0]['gt_info'][gt_inds, :8] * im_scales[0]
+        gt_info = np.empty((len(gt_inds), 2*cfg.NUM_QUA_POINTS), dtype = np.float32)
+        gt_info[:, :2*cfg.NUM_QUA_POINTS] = roidb[0]['gt_info'][gt_inds, :2*cfg.NUM_QUA_POINTS] * im_scales[0]
 
         ascii_encode = [ord(i) for i in roidb[0]['imagePath']] # encode image path. For tracking
         im_info_withPath = [im_blob.shape[2]]+[im_blob.shape[3]]+[im_scales[0]]+ascii_encode
