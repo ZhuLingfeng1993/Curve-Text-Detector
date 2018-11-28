@@ -6,6 +6,7 @@
 # --------------------------------------------------------
 
 import numpy as np
+from fast_rcnn.config import cfg
 
 def bbox_transform(ex_rois, gt_rois):
     ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
@@ -359,7 +360,131 @@ def info_syn_transform_inv_w(boxes, deltas):
     pred[:, 13::14] = pred_dp14w
     
     return pred
-    
+
+
+def qua_info_syn_transform_hw(ex_rois, gt_info):
+    ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
+    ex_heights = ex_rois[:, 3] - ex_rois[:, 1] + 1.0
+    ex_ctr_x = ex_rois[:, 0] + 0.5 * ex_widths
+    ex_ctr_y = ex_rois[:, 1] + 0.5 * ex_heights
+
+    assert gt_info.shape[1] == 2*cfg.NUM_QUA_POINTS, 'length does not match gt_info'
+
+    gt_p1h = gt_info[:, 1]
+    gt_p2h = gt_info[:, 3]
+    gt_p3h = gt_info[:, 5]
+    gt_p4h = gt_info[:, 7]
+
+
+
+    gt_p1w = gt_info[:, 0]
+    gt_p2w = gt_info[:, 2]
+    gt_p3w = gt_info[:, 4]
+    gt_p4w = gt_info[:, 6]
+
+
+
+    # why 0.5? different from paper
+    targets_dp1h = (gt_p1h - ex_heights) * 0.5 / ex_heights
+    targets_dp2h = (gt_p2h - ex_heights) * 0.5 / ex_heights
+    targets_dp3h = (gt_p3h - ex_heights) * 0.5 / ex_heights
+    targets_dp4h = (gt_p4h - ex_heights) * 0.5 / ex_heights
+
+
+
+    targets_dp1w = (gt_p1w - ex_widths) * 0.5 / ex_widths
+    targets_dp2w = (gt_p2w - ex_widths) * 0.5 / ex_widths
+    targets_dp3w = (gt_p3w - ex_widths) * 0.5 / ex_widths
+    targets_dp4w = (gt_p4w - ex_widths) * 0.5 / ex_widths
+
+
+
+    encode_0 = np.zeros_like(targets_dp1w)
+    targets = np.vstack((encode_0, encode_0, targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, encode_0, encode_0, targets_dp1w, targets_dp2w,
+                         targets_dp3w, targets_dp4w)).transpose()  # 44
+    return targets
+
+
+def qua_info_syn_transform_inv_h(boxes, deltas):
+    ''' Return the offest of 14 cors '''
+    if boxes.shape[0] == 0:
+        return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
+    assert len(deltas[0, :]) == (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 'info_inv length wrong'
+
+    dp1h = deltas[:, 2::16]
+    dp2h = deltas[:, 3::16]
+    dp3h = deltas[:, 4::16]
+    dp4h = deltas[:, 5::16]
+    dp5h = deltas[:, 6::16]
+    dp6h = deltas[:, 7::16]
+
+
+    boxes = boxes.astype(deltas.dtype, copy=False)
+
+    widths = boxes[:, 2] - boxes[:, 0] + 1.0
+    heights = boxes[:, 3] - boxes[:, 1] + 1.0
+    # ctr_x = boxes[:, 0] + 0.5 * widths
+    # ctr_y = boxes[:, 1] + 0.5 * heights
+
+    pred_dp1h = dp1h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+    pred_dp2h = dp2h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+    pred_dp3h = dp3h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+    pred_dp4h = dp4h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+    pred_dp5h = dp5h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+    pred_dp6h = dp6h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
+
+
+    pred = np.zeros((deltas.shape[0], deltas.shape[1] - 2), dtype=deltas.dtype)
+
+    pred[:, 0::14] = pred_dp1h
+    pred[:, 1::14] = pred_dp2h
+    pred[:, 2::14] = pred_dp3h
+    pred[:, 3::14] = pred_dp4h
+    pred[:, 4::14] = pred_dp5h
+    pred[:, 5::14] = pred_dp6h
+
+
+    return pred
+
+
+def qua_info_syn_transform_inv_w(boxes, deltas):
+    ''' Return the offest of 14 cors '''
+    if boxes.shape[0] == 0:
+        return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
+    assert len(deltas[0, :]) == (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 'info_inv length wrong'
+
+    dp1w = deltas[:, 2::16]
+    dp2w = deltas[:, 3::16]
+    dp3w = deltas[:, 4::16]
+    dp4w = deltas[:, 5::16]
+    dp5w = deltas[:, 6::16]
+    dp6w = deltas[:, 7::16]
+
+
+    boxes = boxes.astype(deltas.dtype, copy=False)
+
+    widths = boxes[:, 2] - boxes[:, 0] + 1.0
+    heights = boxes[:, 3] - boxes[:, 1] + 1.0
+
+    pred_dp1w = dp1w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+    pred_dp2w = dp2w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+    pred_dp3w = dp3w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+    pred_dp4w = dp4w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+    pred_dp5w = dp5w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+    pred_dp6w = dp6w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
+
+
+    pred = np.zeros((deltas.shape[0], deltas.shape[1] - 2), dtype=deltas.dtype)
+
+    pred[:, 0::14] = pred_dp1w
+    pred[:, 1::14] = pred_dp2w
+    pred[:, 2::14] = pred_dp3w
+    pred[:, 3::14] = pred_dp4w
+    pred[:, 4::14] = pred_dp5w
+    pred[:, 5::14] = pred_dp6w
+
+    return pred
+
 def clip_boxes(boxes, im_shape):
     """
     Clip boxes to image boundaries.
