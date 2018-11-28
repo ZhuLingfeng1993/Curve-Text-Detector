@@ -231,6 +231,12 @@ __C.USE_GPU_IN_CAFFE = True
 # Number of images to use, -1 for all
 __C.NUM_IMAGES = -1
 
+# Number of quadrilateral points
+__C.NUM_QUA_POINTS = 4
+
+# Number of ref points
+__C.NUM_REF_POINTS = 2
+
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.
     If the directory does not exist, it is created.
