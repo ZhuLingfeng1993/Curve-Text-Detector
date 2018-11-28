@@ -2,7 +2,10 @@
 set -x
 set -e
 
-it=$1
+NET="ResNet-50"
+LOG="experiments/logs/test_q_rfcn_tloc_${NET}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
+exec &> >(tee -a "$LOG")
+echo Logging output to "$LOG"
 
 TEST_IMDB="icdar2015ch4_test"
 
