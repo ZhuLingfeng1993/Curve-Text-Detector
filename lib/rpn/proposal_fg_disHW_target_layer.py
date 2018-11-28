@@ -4,7 +4,8 @@ import numpy as np
 import numpy.random as npr
 from fast_rcnn.config import cfg
 from fast_rcnn.bbox_transform import bbox_transform
-# from fast_rcnn.bbox_transform import info_syn_transform_hw
+from fast_rcnn.bbox_transform import qua_info_syn_transform_hw
+from fast_rcnn.bbox_transform import info_syn_transform_hw
 from fast_rcnn.bbox_transform import qua_transform
 from utils.cython_bbox import bbox_overlaps
 
@@ -33,11 +34,12 @@ class ProposalFgDisHWTargetLayer(caffe.Layer):
         top[4].reshape(1, self._num_classes * 4, 1, 1)
         # ### quadrilateral
         # info_targets hw
-        top[5].reshape(1, (self._num_classes - 1) * 4, 1, 1)
-        top[6].reshape(1, (self._num_classes - 1) * 4, 1, 1)
+        top[5].reshape(1, (self._num_classes - 1) * (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 1, 1)
+        top[6].reshape(1, (self._num_classes - 1) * (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 1, 1)
         # info_inside_weights hw
-        top[7].reshape(1, (self._num_classes - 1) * 4, 1, 1)
-        top[8].reshape(1, (self._num_classes - 1) * 4, 1, 1)
+        # info_outside_weights hw
+        top[7].reshape(1, (self._num_classes - 1) * (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 1, 1)
+        top[8].reshape(1, (self._num_classes - 1) * (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 1, 1)
 
         # rois Fg slice
         top[9].reshape(1, 5, 1, 1)
@@ -176,7 +178,7 @@ def syn_get_bbox_regression_labels(bbox_target_data, info_target_data, num_class
     bbox_inside_weights = np.zeros(bbox_targets.shape, dtype=np.float32)
     ######## curve
     num_fg = info_target_data.shape[0]
-    info_targets_fg = np.zeros((num_fg, 8 * (num_classes-1)), dtype = np.float32)
+    info_targets_fg = np.zeros((num_fg, 2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS) * (num_classes-1)), dtype = np.float32)
     info_inside_weights_fg = np.zeros(info_targets_fg.shape, dtype = np.float32)
     ########
 
@@ -189,9 +191,9 @@ def syn_get_bbox_regression_labels(bbox_target_data, info_target_data, num_class
         end = int(end)
         bbox_targets[ind, start:end] = bbox_target_data[ind, 1:]
         bbox_inside_weights[ind, start:end] = cfg.TRAIN.BBOX_INSIDE_WEIGHTS
-        start2 = 8 * (1 if (cls-1) > 0 else 0) # curve 32
+        start2 = 2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS) * (1 if (cls-1) > 0 else 0) # curve 32
         assert(start2 == 0), 'fg should start from very beginning.'
-        end2 = start2 + 8
+        end2 = start2 + 2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)
         start2 = int(start2)
         end2 = int(end2)
         info_targets_fg[ind, start2:end2] = info_target_data[ind, :]
@@ -208,13 +210,14 @@ def syn_compute_targets(ex_rois, gt_rois, gt_info, labels):
     assert gt_rois.shape[1] == 4
     ########################################### curve
     assert gt_rois.shape[0] == gt_info.shape[0]
-    assert gt_info.shape[1] == 8
+    assert gt_info.shape[1] == 2*cfg.NUM_QUA_POINTS
     ###########################################
 
     targets = bbox_transform(ex_rois, gt_rois)
     # curve
     # targets_2 = info_syn_transform_hw(ex_rois, gt_info)
-    targets_2 = qua_transform(ex_rois, gt_info)
+    # targets_2 = qua_transform(ex_rois, gt_info)
+    targets_2 = qua_info_syn_transform_hw(ex_rois, gt_info)
 
     if DEBUG:
         print 'targets after bbox_transform:'
@@ -285,8 +288,8 @@ def syn_sample_rois(all_rois, gt_boxes, gt_info, fg_rois_per_image, rois_per_ima
     
     # print 'proposal_target_layer:', rois ## curve
     bbox_target_data, info_target_data = syn_compute_targets(
-        rois[:, 1:5], gt_boxes[gt_assignment[keep_inds], :4], gt_info[gt_assignment[keep_inds], :8], labels)
-    assert(info_target_data.shape[1] == 8), 'info_targets num_columns ' + str(info_target_data.shape[1]) + ' should be 8'
+        rois[:, 1:5], gt_boxes[gt_assignment[keep_inds], :4], gt_info[gt_assignment[keep_inds], :2*cfg.NUM_QUA_POINTS], labels)
+    assert(info_target_data.shape[1] == 2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)), 'info_targets num_columns ' + str(info_target_data.shape[1]) + ' should be 8'
     
     info_target_data_fg = info_target_data[:fg_rois_per_this_image]     
     if DEBUG:
@@ -297,9 +300,9 @@ def syn_sample_rois(all_rois, gt_boxes, gt_info, fg_rois_per_image, rois_per_ima
 
     bbox_targets, info_targets, bbox_inside_weights, info_inside_weights = \
         syn_get_bbox_regression_labels(bbox_target_data, info_target_data_fg, num_classes) # syn
-    info_target_data_fg_h = info_targets[:, 0:4]
-    info_target_data_fg_w = info_targets[:, 4:8]
-    info_inside_weights_h = info_inside_weights[:, 0:4]
-    info_inside_weights_w = info_inside_weights[:, 4:8]
+    info_target_data_fg_h = info_targets[:, 0:(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    info_target_data_fg_w = info_targets[:, (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS):2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    info_inside_weights_h = info_inside_weights[:, 0:(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    info_inside_weights_w = info_inside_weights[:, (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS):2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
 
     return labels, rois, bbox_targets, info_target_data_fg_h, info_target_data_fg_w, bbox_inside_weights, info_inside_weights_h, info_inside_weights_w, rois_fg
