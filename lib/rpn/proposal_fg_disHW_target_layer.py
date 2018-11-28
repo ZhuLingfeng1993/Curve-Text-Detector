@@ -4,7 +4,8 @@ import numpy as np
 import numpy.random as npr
 from fast_rcnn.config import cfg
 from fast_rcnn.bbox_transform import bbox_transform
-from fast_rcnn.bbox_transform import info_syn_transform_hw
+# from fast_rcnn.bbox_transform import info_syn_transform_hw
+from fast_rcnn.bbox_transform import qua_transform
 from utils.cython_bbox import bbox_overlaps
 
 DEBUG = False
@@ -212,8 +213,9 @@ def syn_compute_targets(ex_rois, gt_rois, gt_info, labels):
 
     targets = bbox_transform(ex_rois, gt_rois)
     # curve
-    targets_2 = info_syn_transform_hw(ex_rois, gt_info)
-    
+    # targets_2 = info_syn_transform_hw(ex_rois, gt_info)
+    targets_2 = qua_transform(ex_rois, gt_info)
+
     if DEBUG:
         print 'targets after bbox_transform:'
         print targets
