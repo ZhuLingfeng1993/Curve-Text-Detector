@@ -411,7 +411,11 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
         for j in xrange(1, imdb.num_classes):
             assert (scores.shape[0] == infos_h.shape[0] == infos_w.shape[0]), 'length mismatch'
             # keep boxes with score > threshold
-            inds = np.where(scores[:, j] > 0.4)[0]
+            score_thresh = 0.5
+            # for cpu fast test, ensure there are detections
+            if cfg.USE_GPU_IN_CAFFE == False:
+                score_thresh = 0.4
+            inds = np.where(scores[:, j] > score_thresh)[0]
             ind_35 = np.where((scores[:, j] > 0.3))[0]
             print "thresh>0.5:   ", len(inds)
             print "0.5>thresh>0.3:   ", len(ind_35)
