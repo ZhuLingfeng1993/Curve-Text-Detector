@@ -9,10 +9,15 @@ TEST_IMDB="icdar2015ch4_test"
 # icdar2015ch4
 ./tools/test_net.py --gpu 3 \
   --def models/q_rfcn_tloc/test_q_rfcn_tloc.prototxt \
-  --net output/q_rfcn_tloc/icdar2015ch4/q_rfcn_tloc_iter_100000.caffemodel \
+<<<<<<< HEAD
+  --net output/q_rfcn_tloc/icdar2015ch4/q_rfcn_tloc_iter_90000.caffemodel \
+  --imdb ${TEST_IMDB} \
+=======
+  --net output/q_rfcn_tloc/icdar2015ch4/q_rfcn_tloc_iter_3.caffemodel \
   --imdb icdar2015ch4_test \
+>>>>>>> 1cad7e8dad50fcfc5389fb987e88343f5a290c59
   --cfg experiments/cfgs/q_rfcn_tloc.yml \
   --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \
   --test_image data/icdar2015ch4/ch4_test_images.txt \
-  --vis
+  #--vis
 
