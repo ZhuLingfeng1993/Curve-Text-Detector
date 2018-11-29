@@ -274,7 +274,7 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
     cv2.imshow('Dectecting results syn.', imk)
     cv2.waitKey(0)
 
-def vis_detections_opencv_data_testing(im, class_name, dets, out_filename, thresh=0.3, ):
+def vis_detections_opencv_data_testing(im, class_name, dets, out_filename, abs=True, thresh=0.3, ):
     """Visual debugging of detections with absolute coordinates."""
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
@@ -284,13 +284,18 @@ def vis_detections_opencv_data_testing(im, class_name, dets, out_filename, thres
         # print pts
         # a = input('stop check')
         assert (len(pts) == 8), 'wrong length.'
+        x_min = int(bbox[0])
+        y_min = int(bbox[1])
+        if abs:
+            x_min = 0
+            y_min = 0
         if score > thresh:
             for p in xrange(0, 8, 2):
                 cv2.line(im,
-                         (int(pts[p % 8]),
-                          int(pts[(p + 1) % 8])),
-                         (int(pts[(p + 2) % 8]),
-                          int(pts[(p + 3) % 8])),
+                         (x_min + int(pts[p % 8]),
+                          y_min + int(pts[(p + 1) % 8])),
+                         (x_min + int(pts[(p + 2) % 8]),
+                          y_min + int(pts[(p + 3) % 8])),
                          (0, 0, 255), 2)
 
     imk = cv2.resize(im, (1280, 720))  # visualization

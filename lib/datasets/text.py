@@ -108,10 +108,15 @@ class icdar2015ch4(imdb_text):
                         assert (int(box[ix, 1]) < int(box[ix, 3])), 'ymin should less than ymax' + int(
                             box[ix, 1]) + ' ' + int(box[ix, 3])
 
-                label['gt_boxes'] = box
-                label['gt_info'] = gt_info  # syn
+                # change gt_info from absolute coordinates into relative ones to left top of box
+                lt_point_tile = np.tile(box[:, 0:2], (1, 4))
+                # (N,8) = (N,8) - (N,2)
+                gt_info_rel = gt_info - lt_point_tile
 
-                vis = True
+                label['gt_boxes'] = box
+                label['gt_info'] = gt_info_rel  # syn
+
+                vis = False
                 # vis image and label
                 if vis:
                     from fast_rcnn.test import vis_detections, vis_detections_opencv,vis_detections_opencv_data_testing
@@ -120,13 +125,13 @@ class icdar2015ch4(imdb_text):
                     cls_dets = np.hstack((box, np.ones(box.shape[0])[:, np.newaxis])) \
                         .astype(np.float32, copy=False)
 
-                    cls_dets_withInfo = np.hstack((cls_dets, gt_info)) \
+                    cls_dets_withInfo = np.hstack((cls_dets, gt_info_rel)) \
                         .astype(np.float32, copy=False)
                     # Read image
                     im = cv2.imread(label['imagePath'])
                     #vis_detections(im, 'text', cls_dets)
                     #vis_detections_opencv(im, 'text', cls_dets)
-                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo, None)
+                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo, None, abs=False)
 
                 labels.append(label)
         print "load images number = {}".format(len(labels))
