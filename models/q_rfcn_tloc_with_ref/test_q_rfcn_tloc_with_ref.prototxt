@@ -1,4 +1,4 @@
-name: "Q_RFCN_ResNet50_test"
+name: "Q_RFCN_With_Ref_ResNet50_test"
 
 input: "data"
 input_shape {
@@ -3713,7 +3713,7 @@ layer {
     type: "Convolution"
     convolution_param {
         # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
-        num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
+        num_output: 294 # 1*6*(7^2) fg_cls_num*(quadrilateral_point_num+ref_points_num)*(score_maps_size^2)
         kernel_size: 1
         pad: 0
         weight_filler {
@@ -3739,7 +3739,7 @@ layer {
     type: "Convolution"
     convolution_param {
         # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
-        num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
+        num_output: 294 # 1*6*(7^2) fg_cls_num*(quadrilateral_point_num+ref_points_num)*(score_maps_size^2)
         kernel_size: 1
         pad: 0
         weight_filler {
@@ -3821,7 +3821,7 @@ layer {
     psroi_pooling_param {
         spatial_scale: 0.0625 # 1/feat_stride ?
         # output_dim: 16
-        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+        output_dim: 6 # 4+2: quadrilateral_points_num + ref_points_num
         group_size: 7
     }
 }
@@ -3835,7 +3835,7 @@ layer {
   top: "im2col_transpose_h"
   reshape_param {
     # shape { dim: 0 dim: -1 dim: 1 dim: 16}
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # fourth dim: 4+0: quadrilateral_points_num + ref_points_num
+    shape { dim: 0 dim: -1 dim: 1 dim: 6} # fourth dim: 4+2: quadrilateral_points_num + ref_points_num
     # axis: 1
     # num_axes: 1
   }
@@ -3857,7 +3857,7 @@ layer {
     bottom: "cont_sentence_h"
     top: "lstm1_h"
     recurrent_param {
-        num_output: 42 # 128 # why?
+        num_output: 128 # why?
         weight_filler {
             type: "xavier"
         }
@@ -3893,7 +3893,7 @@ layer {
     bottom: "rlstm1_cont_sentence_h"
     top: "rlstm2_h"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -3957,9 +3957,9 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 84 # 256 # lstm1_h(num_output) + lstm2_h(num_output)
+        kernel_w: 256 # lstm1_h(num_output) + lstm2_h(num_output)
         kernel_h: 1
-        stride_w: 84 # 256 # same as kernel_w
+        stride_w: 256 # same as kernel_w
         stride_h: 1
     }
 }
@@ -3974,7 +3974,7 @@ layer {
     psroi_pooling_param {
         spatial_scale: 0.0625
         # output_dim: 16
-        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+        output_dim: 6 # 4+2: quadrilateral_points_num + ref_points_num
         group_size: 7
     }
 }
@@ -3988,7 +3988,7 @@ layer {
   top: "im2col_transpose_w"
   reshape_param {
     # shape { dim: 0 dim: -1 dim: 1 dim: 16}
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # 4+0: quadrilateral_points_num + ref_points_num
+    shape { dim: 0 dim: -1 dim: 1 dim: 6} # 4+2: quadrilateral_points_num + ref_points_num
     # axis: 1
     # num_axes: 1
   }
@@ -4010,7 +4010,7 @@ layer {
     bottom: "cont_sentence_w"
     top: "lstm1_w"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -4046,7 +4046,7 @@ layer {
     bottom: "rlstm1_cont_sentence_w"
     top: "rlstm2_w"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -4109,9 +4109,9 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 84 # 256
+        kernel_w: 256
         kernel_h: 1
-        stride_w: 84 # 256
+        stride_w: 256
         stride_h: 1
     }
 }
@@ -4158,7 +4158,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+            dim: 6 # 4+2: quadrilateral_points_num + ref_points_num
         }
     }
 }
@@ -4171,7 +4171,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+            dim: 6 # 4+2: quadrilateral_points_num + ref_points_num
         }
     }
 }

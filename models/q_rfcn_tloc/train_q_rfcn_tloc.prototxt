@@ -3779,7 +3779,7 @@ layer {
     top: "rfcn_bbox_info_h"
     type: "Convolution"
     convolution_param {
-        # num_output: 784 # 1*14*(7^2) fg_cls_num*cors*(score_maps_size^2)
+        # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
         num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
         kernel_size: 1
         pad: 0
@@ -3805,7 +3805,7 @@ layer {
     name: "rfcn_bbox_info_w"
     type: "Convolution"
     convolution_param {
-        # num_output: 784 # 1*14*(7^2) fg_cls_num*cors*(score_maps_size^2)
+        # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
         num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
         kernel_size: 1
         pad: 0
@@ -3888,7 +3888,7 @@ layer {
     psroi_pooling_param {
         spatial_scale: 0.0625 # 1/feat_stride ?
         # output_dim: 16
-        output_dim: 4 # quadrilateral_points_num
+        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
         group_size: 7
     }
 }
@@ -3902,7 +3902,7 @@ layer {
   top: "im2col_transpose_h"
   reshape_param {
     # shape { dim: 0 dim: -1 dim: 1 dim: 16}
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # fourth dim: quadrilateral_points_num
+    shape { dim: 0 dim: -1 dim: 1 dim: 4} # fourth dim: 4+0: quadrilateral_points_num + ref_points_num
     # axis: 1
     # num_axes: 1
   }
@@ -4040,7 +4040,8 @@ layer {
     type: "PSROIPooling"
     psroi_pooling_param {
         spatial_scale: 0.0625
-        output_dim: 4 # quadrilateral_points_num
+        # output_dim: 16
+        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
         group_size: 7
     }
 }
@@ -4053,7 +4054,8 @@ layer {
   bottom: "psroipooled_loc_rois_info_w"
   top: "im2col_transpose_w"
   reshape_param {
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # fourth dim: quadrilateral_points_num
+    # shape { dim: 0 dim: -1 dim: 1 dim: 16}
+    shape { dim: 0 dim: -1 dim: 1 dim: 4} # 4+0: quadrilateral_points_num + ref_points_num
     # axis: 1
     # num_axes: 1
   }

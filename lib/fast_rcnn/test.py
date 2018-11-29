@@ -1,6 +1,7 @@
 from fast_rcnn.config import cfg, get_output_dir
 from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv, info_syn_transform_inv_h, info_syn_transform_inv_w
 from fast_rcnn.bbox_transform import qua_transform_inv
+from fast_rcnn.bbox_transform import qua_info_syn_transform_inv_h, qua_info_syn_transform_inv_w
 import argparse
 from utils.timer import Timer
 import numpy as np
@@ -200,9 +201,11 @@ def im_detect(net, im, boxes=None, info=False):
     if info:
         info_deltas_h = blobs_out['info_pred_h']
         # pred_infos_h =info_syn_transform_inv_h(boxes, info_deltas_h)
+        pred_infos_h = qua_info_syn_transform_inv_h(boxes, info_deltas_h)
         info_deltas_w = blobs_out['info_pred_w']
-        # pred_infos_w = info_syn_transform_inv_w(boxes, info_deltas_w)
-        pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
+        # pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
+        pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
+        # pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
         assert len(boxes) == len(pred_infos_h) == len(pred_infos_w)
 
     if info:
@@ -249,19 +252,19 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, 4]
-        info_bbox = dets[i, 5:13]  # syn
-        pts = [info_bbox[i] for i in xrange(8)]
+        info_bbox = dets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]  # syn
+        pts = [info_bbox[i] for i in xrange(2*cfg.NUM_QUA_POINTS)]
         # print pts
         # a = input('stop check')
-        assert (len(pts) == 8), 'wrong length.'
+        assert (len(pts) == 2*cfg.NUM_QUA_POINTS), 'wrong length.'
         if score > thresh:
-            for p in xrange(0, 8, 2):
+            for p in xrange(0, 2*cfg.NUM_QUA_POINTS, 2):
                 # if p == 0:
                 #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
                 #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
                 # else:
-                cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
-                         (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
+                cv2.line(im, (int(bbox[0]) + int(pts[p % 2*cfg.NUM_QUA_POINTS]), int(bbox[1]) + int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
+                         (int(bbox[0]) + int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]), int(bbox[1]) + int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])), (0, 0, 255), 2)
 
 
     imk = cv2.resize(im, (1280, 720))  # visualization
@@ -273,21 +276,21 @@ def test_syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, 4]
-        info_bbox = dets[i, 5:13]  # syn
-        pts = [info_bbox[i] for i in xrange(8)]
+        info_bbox = dets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]  # syn
+        pts = [info_bbox[i] for i in xrange(2*cfg.NUM_QUA_POINTS)]
         # print pts
         # a = input('stop check')
-        assert (len(pts) == 8), 'wrong length.'
+        assert (len(pts) == 2*cfg.NUM_QUA_POINTS), 'wrong length.'
         if score > thresh:
-            for p in xrange(0, 8, 2):
+            for p in xrange(0, 2*cfg.NUM_QUA_POINTS, 2):
                 # if p == 0:
                 #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
                 #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
                 # else:
                 # cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
                 #          (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
-                cv2.line(im, (int(pts[p % 8]), int(pts[(p + 1) % 8])),
-                         (int(pts[(p + 2) % 8]),  int(pts[(p + 3) % 8])), (0, 0, 255), 2)
+                cv2.line(im, (int(pts[p % 2*cfg.NUM_QUA_POINTS]), int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
+                         (int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]),  int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])), (0, 0, 255), 2)
 
     imk = cv2.resize(im, (1280, 720))  # visualization
     cv2.imshow('Dectecting results syn.', imk)
@@ -303,8 +306,8 @@ def nps(dets, cdets):
     for i in xrange(cdets.shape[0]):
         bbox = cdets[i, :4]
         score = cdets[i, 4]
-        info_bbox = cdets[i, 5:13]
-        pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j + 1]) for j in xrange(0, 8, 2)]
+        info_bbox = cdets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]
+        pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j + 1]) for j in xrange(0, 2*cfg.NUM_QUA_POINTS, 2)]
 
         # print('try ploygon test')
         ploygon_test = Polygon(pts)
@@ -411,7 +414,11 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
         for j in xrange(1, imdb.num_classes):
             assert (scores.shape[0] == infos_h.shape[0] == infos_w.shape[0]), 'length mismatch'
             # keep boxes with score > threshold
-            inds = np.where(scores[:, j] > 0.5)[0]
+            score_thresh = 0.5
+            # for cpu fast test, ensure there are detections
+            if cfg.USE_GPU_IN_CAFFE == False:
+                score_thresh = 0.4
+            inds = np.where(scores[:, j] > score_thresh)[0]
             ind_35 = np.where((scores[:, j] > 0.3))[0]
             print "thresh>0.5:   ", len(inds)
             print "0.5>thresh>0.3:   ", len(ind_35)
@@ -425,8 +432,8 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
             if cfg.TEST.AGNOSTIC:
                 cls_boxes = boxes[inds, 4:8]
                 ## SYN
-                cls_infos_h = infos_h[inds, :4]
-                cls_infos_w = infos_w[inds, :4]
+                cls_infos_h = infos_h[inds, :cfg.NUM_QUA_POINTS]
+                cls_infos_w = infos_w[inds, :cfg.NUM_QUA_POINTS]
             else:
                 pass
                 # cls_boxes = boxes[inds, j*4:(j+1)*4]
@@ -437,7 +444,7 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
                 .astype(np.float32, copy=False)
 
             # stack h and w pred.
-            cls_infos = np.zeros((cls_infos_h.shape[0], 8))
+            cls_infos = np.zeros((cls_infos_h.shape[0], 2*cfg.NUM_QUA_POINTS))
             wh_stack_temp = np.dstack((cls_infos_w, cls_infos_h))
             assert (wh_stack_temp.shape[0] == cls_infos.shape[0]), 'wh stack length mismatch.'
             for ixstack, row_cls_infos in enumerate(cls_infos):

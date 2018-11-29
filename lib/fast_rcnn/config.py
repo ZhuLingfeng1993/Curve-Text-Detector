@@ -84,20 +84,23 @@ __C.TRAIN.BBOX_NORMALIZE_TARGETS = True
 __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 
 # quadrilateral
-__C.TRAIN.INFO_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0) # 8
+__C.TRAIN.INFO_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0,
+                                 1.0, 1.0, 1.0, 1.0,
+                                 1.0, 1.0, 1.0, 1.0) # 8
 
 
 # Normalize the targets using "precomputed" (or made up) means and stdevs
 # (BBOX_NORMALIZE_TARGETS must also be True)
 __C.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED = False
 __C.TRAIN.BBOX_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0)
-__C.TRAIN.BBOX_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2) # origin of author
-# __C.TRAIN.BBOX_NORMALIZE_STDS = (1, 1, 1, 1)
+__C.TRAIN.BBOX_NORMALIZE_STDS = (0.1, 0.1, 0.2, 0.2)
 
-__C.TRAIN.INFO_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) # 8
-__C.TRAIN.INFO_NORMALIZE_STDS = (1, 1, 1, 1, 1, 1, 1, 1) # 8 origin of author
-# __C.TRAIN.INFO_NORMALIZE_STDS = (5, 5, 5, 5, 5, 5, 5, 5) # 8
-
+__C.TRAIN.INFO_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0,
+                                  0.0, 0.0, 0.0, 0.0,
+                                  0.0, 0.0, 0.0, 0.0) # 8
+__C.TRAIN.INFO_NORMALIZE_STDS = (1, 1, 1, 1,
+                                 1, 1, 1, 1,
+                                 1, 1, 1, 1) # 8
 
 __C.TRAIN.RPN_NORMALIZE_TARGETS = False
 __C.TRAIN.RPN_NORMALIZE_MEANS = None
@@ -233,6 +236,12 @@ __C.USE_GPU_IN_CAFFE = True
 
 # Number of images to use, -1 for all
 __C.NUM_IMAGES = -1
+
+# Number of quadrilateral points
+__C.NUM_QUA_POINTS = 4
+
+# Number of ref points
+__C.NUM_REF_POINTS = 2
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.

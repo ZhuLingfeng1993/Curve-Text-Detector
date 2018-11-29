@@ -1,4 +1,4 @@
-name: "Q_RFCN_ResNet50_test"
+name: "ResNet-50"
 
 input: "data"
 input_shape {
@@ -32,7 +32,7 @@ layer {
     param {
         lr_mult: 0.0
     }
-    
+
 }
 
 layer {
@@ -3542,7 +3542,7 @@ layer {
      stride: 1
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler { type: "constant" value: 0 }
-  } 
+  }
 }
 layer {
   name: "rpn_relu/3x3"
@@ -3582,9 +3582,9 @@ layer {
 }
 
 layer {
-   name: "rpn_cls_score_reshape"
    bottom: "rpn_cls_score"
    top: "rpn_cls_score_reshape"
+   name: "rpn_cls_score_reshape"
    type: "Reshape"
    reshape_param { shape { dim: 0 dim: 2 dim: -1 dim: 0 } }
 }
@@ -3603,7 +3603,7 @@ layer {
   type: 'Reshape'
   bottom: 'rpn_cls_prob'
   top: 'rpn_cls_prob_reshape'
-  reshape_param { shape { dim: 0 dim: 24 dim: -1 dim: 0 } } # second dim: 2(bg/fg) * 12(anchors)
+  reshape_param { shape { dim: 0 dim: 24 dim: -1 dim: 0 } }
 }
 
 layer {
@@ -3705,15 +3705,14 @@ layer {
         lr_mult: 2.0
     }
 }
-# quadrilateral
+# curve
 layer {
-    name: "rfcn_bbox_info_h"
     bottom: "conv_new_1"
     top: "rfcn_bbox_info_h"
+    name: "rfcn_bbox_info_h"
     type: "Convolution"
     convolution_param {
-        # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
-        num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
+        num_output: 784
         kernel_size: 1
         pad: 0
         weight_filler {
@@ -3738,8 +3737,7 @@ layer {
     name: "rfcn_bbox_info_w"
     type: "Convolution"
     convolution_param {
-        # num_output: 784 # 1*16*(7^2) fg_cls_num*cors*(score_maps_size^2)
-        num_output: 196 # 1*4*(7^2) fg_cls_num*quadrilateral_point_num*(score_maps_size^2)
+        num_output: 784
         kernel_size: 1
         pad: 0
         weight_filler {
@@ -3768,7 +3766,7 @@ layer {
     type: "PSROIPooling"
     psroi_pooling_param {
         spatial_scale: 0.0625
-        output_dim: 2 # cls_num
+        output_dim: 2
         group_size: 7
     }
 }
@@ -3811,17 +3809,16 @@ layer {
     }
 }
 
-#--------------quadrilateral position sensitive RoI pooling--------------
+#--------------curve position sensitive RoI pooling--------------
 layer {
-    name: "psroipooled_loc_rois_info_h"
     bottom: "rfcn_bbox_info_h"
     bottom: "rois" # rois_fg
     top: "psroipooled_loc_rois_info_h"
+    name: "psroipooled_loc_rois_info_h"
     type: "PSROIPooling"
     psroi_pooling_param {
-        spatial_scale: 0.0625 # 1/feat_stride ?
-        # output_dim: 16
-        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+        spatial_scale: 0.0625
+        output_dim: 16
         group_size: 7
     }
 }
@@ -3834,14 +3831,12 @@ layer {
   bottom: "psroipooled_loc_rois_info_h"
   top: "im2col_transpose_h"
   reshape_param {
-    # shape { dim: 0 dim: -1 dim: 1 dim: 16}
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # fourth dim: 4+0: quadrilateral_points_num + ref_points_num
+    shape { dim: 0 dim: -1 dim: 1 dim: 16}
     # axis: 1
     # num_axes: 1
   }
 }
 
-#####  lstm
 layer {
   name: "conv_lstm_h"
   type: "Convert"
@@ -3857,7 +3852,7 @@ layer {
     bottom: "cont_sentence_h"
     top: "lstm1_h"
     recurrent_param {
-        num_output: 42 # 128 # why?
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -3893,7 +3888,7 @@ layer {
     bottom: "rlstm1_cont_sentence_h"
     top: "rlstm2_h"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -3923,8 +3918,6 @@ layer {
     axis: 2
   }
 }
-
-# =======================================
 
 layer {
   name: "lstm_output_reshape_h"
@@ -3957,9 +3950,9 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 84 # 256 # lstm1_h(num_output) + lstm2_h(num_output)
+        kernel_w: 256
         kernel_h: 1
-        stride_w: 84 # 256 # same as kernel_w
+        stride_w: 256
         stride_h: 1
     }
 }
@@ -3973,8 +3966,7 @@ layer {
     type: "PSROIPooling"
     psroi_pooling_param {
         spatial_scale: 0.0625
-        # output_dim: 16
-        output_dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+        output_dim: 16
         group_size: 7
     }
 }
@@ -3987,14 +3979,12 @@ layer {
   bottom: "psroipooled_loc_rois_info_w"
   top: "im2col_transpose_w"
   reshape_param {
-    # shape { dim: 0 dim: -1 dim: 1 dim: 16}
-    shape { dim: 0 dim: -1 dim: 1 dim: 4} # 4+0: quadrilateral_points_num + ref_points_num
+    shape { dim: 0 dim: -1 dim: 1 dim: 16}
     # axis: 1
     # num_axes: 1
   }
 }
 
-##### lstm
 layer {
   name: "conv_lstm_w"
   type: "Convert"
@@ -4010,7 +4000,7 @@ layer {
     bottom: "cont_sentence_w"
     top: "lstm1_w"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -4046,7 +4036,7 @@ layer {
     bottom: "rlstm1_cont_sentence_w"
     top: "rlstm2_w"
     recurrent_param {
-        num_output: 42 # 128
+        num_output: 128
         weight_filler {
             type: "xavier"
         }
@@ -4095,10 +4085,10 @@ layer {
   top: "im2col_transpose2_w"
   type: "Transpose"
   transpose_param {
-    dim: 1 
-    dim: 0 
+    dim: 1
+    dim: 0
     dim: 2
-    dim: 3 
+    dim: 3
   }
 }
 
@@ -4109,14 +4099,14 @@ layer {
     type: "Pooling"
     pooling_param {
         pool: AVE
-        kernel_w: 84 # 256
+        kernel_w: 256
         kernel_h: 1
-        stride_w: 84 # 256
+        stride_w: 256
         stride_h: 1
     }
 }
 
-# pred
+#--------------CURVE position sensitive RoI pooling--------------
 layer {
    name: "cls_prob"
    type: "Softmax"
@@ -4132,7 +4122,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 2 # num_cls
+            dim: 2
         }
     }
 }
@@ -4145,7 +4135,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 8 # 2*4 cls_num*(dx, dy, dw, dh)
+            dim: 8
         }
     }
 }
@@ -4158,7 +4148,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+            dim: 16
         }
     }
 }
@@ -4171,7 +4161,7 @@ layer {
     reshape_param {
         shape {
             dim: -1
-            dim: 4 # 4+0: quadrilateral_points_num + ref_points_num
+            dim: 16
         }
     }
 }
