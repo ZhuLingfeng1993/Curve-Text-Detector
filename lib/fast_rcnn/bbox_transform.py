@@ -343,7 +343,7 @@ def info_syn_transform_inv_w(boxes, deltas):
     pred_dp14w = dp14w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
 
     pred = np.zeros((deltas.shape[0], deltas.shape[1] - 2), dtype=deltas.dtype)
-    
+
     pred[:, 0::14] = pred_dp1w
     pred[:, 1::14] = pred_dp2w
     pred[:, 2::14] = pred_dp3w
@@ -358,7 +358,7 @@ def info_syn_transform_inv_w(boxes, deltas):
     pred[:, 11::14] = pred_dp12w
     pred[:, 12::14] = pred_dp13w
     pred[:, 13::14] = pred_dp14w
-    
+
     return pred
 
 
