@@ -111,22 +111,22 @@ class icdar2015ch4(imdb_text):
                 label['gt_boxes'] = box
                 label['gt_info'] = gt_info  # syn
 
-                vis = False
+                vis = True
                 # vis image and label
                 if vis:
+                    from fast_rcnn.test import vis_detections, vis_detections_opencv,vis_detections_opencv_data_testing
+                    import cv2
                     # detections with class score: (x1, y1, x2, y2, score)
                     cls_dets = np.hstack((box, np.ones(box.shape[0])[:, np.newaxis])) \
                         .astype(np.float32, copy=False)
 
                     cls_dets_withInfo = np.hstack((cls_dets, gt_info)) \
                         .astype(np.float32, copy=False)
-                    from fast_rcnn.test import vis_detections, vis_detections_opencv, test_syn_vis_detections_opencv
-                    import cv2
                     # Read image
                     im = cv2.imread(label['imagePath'])
                     #vis_detections(im, 'text', cls_dets)
                     #vis_detections_opencv(im, 'text', cls_dets)
-                    test_syn_vis_detections_opencv(im, 'text', cls_dets_withInfo, None)
+                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo, None)
 
                 labels.append(label)
         print "load images number = {}".format(len(labels))
@@ -267,15 +267,18 @@ class icdar2015ch4(imdb_text):
                             '{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
                             format(str(index), dets[k, 4],
                                    dets[k, 0] + pts[0], dets[k, 1] + pts[1],
-                                   dets[k, 0] + pts[2], dets[k, 1] + pts[3], dets[k, 0] + pts[4], dets[k, 1] + pts[5],
-                                   dets[k, 0] + pts[6], dets[k, 1] + pts[7], dets[k, 0] + pts[8], dets[k, 1] + pts[9],
+                                   dets[k, 0] + pts[2], dets[k, 1] + pts[3],
+                                   dets[k, 0] + pts[4], dets[k, 1] + pts[5],
+                                   dets[k, 0] + pts[6], dets[k, 1] + pts[7],
+                                   dets[k, 0] + pts[8], dets[k, 1] + pts[9],
                                    dets[k, 0] + pts[10], dets[k, 1] + pts[11],
                                    dets[k, 0] + pts[12], dets[k, 1] + pts[13],
                                    dets[k, 0] + pts[14], dets[k, 1] + pts[15],
-                                   dets[k, 0] + pts[16], dets[k, 1] + pts[17], dets[k, 0] + pts[18],
-                                   dets[k, 1] + pts[19],
-                                   dets[k, 0] + pts[20], dets[k, 1] + pts[21], dets[k, 0] + pts[22],
-                                   dets[k, 1] + pts[23], dets[k, 0] + pts[24], dets[k, 1] + pts[25],
+                                   dets[k, 0] + pts[16], dets[k, 1] + pts[17],
+                                   dets[k, 0] + pts[18], dets[k, 1] + pts[19],
+                                   dets[k, 0] + pts[20], dets[k, 1] + pts[21],
+                                   dets[k, 0] + pts[22], dets[k, 1] + pts[23],
+                                   dets[k, 0] + pts[24], dets[k, 1] + pts[25],
                                    dets[k, 0] + pts[26], dets[k, 1] + pts[27]
                                    ))
 

@@ -263,37 +263,38 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
                 #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
                 #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
                 # else:
-                cv2.line(im, (int(bbox[0]) + int(pts[p % 2*cfg.NUM_QUA_POINTS]), int(bbox[1]) + int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
-                         (int(bbox[0]) + int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]), int(bbox[1]) + int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])), (0, 0, 255), 2)
+                cv2.line(im, (int(bbox[0]) + int(pts[p % 2*cfg.NUM_QUA_POINTS]),
+                         int(bbox[1]) + int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
+                         (int(bbox[0]) + int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]),
+                         int(bbox[1]) + int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])),
+                         (0, 0, 255), 2)
 
 
     imk = cv2.resize(im, (1280, 720))  # visualization
     cv2.imshow('Dectecting results syn.', imk)
     cv2.waitKey(0)
 
-def test_syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
-    """Visual debugging of detections."""
+def vis_detections_opencv_data_testing(im, class_name, dets, out_filename, thresh=0.3, ):
+    """Visual debugging of detections with absolute coordinates."""
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, 4]
-        info_bbox = dets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]  # syn
-        pts = [info_bbox[i] for i in xrange(2*cfg.NUM_QUA_POINTS)]
+        info_bbox = dets[i, 5:13]  # syn
+        pts = [info_bbox[i] for i in xrange(8)]
         # print pts
         # a = input('stop check')
-        assert (len(pts) == 2*cfg.NUM_QUA_POINTS), 'wrong length.'
+        assert (len(pts) == 8), 'wrong length.'
         if score > thresh:
-            for p in xrange(0, 2*cfg.NUM_QUA_POINTS, 2):
-                # if p == 0:
-                #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
-                #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
-                # else:
-                # cv2.line(im, (int(bbox[0]) + int(pts[p % 8]), int(bbox[1]) + int(pts[(p + 1) % 8])),
-                #          (int(bbox[0]) + int(pts[(p + 2) % 8]), int(bbox[1]) + int(pts[(p + 3) % 8])), (0, 0, 255), 2)
-                cv2.line(im, (int(pts[p % 2*cfg.NUM_QUA_POINTS]), int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
-                         (int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]),  int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])), (0, 0, 255), 2)
+            for p in xrange(0, 8, 2):
+                cv2.line(im,
+                         (int(pts[p % 8]),
+                          int(pts[(p + 1) % 8])),
+                         (int(pts[(p + 2) % 8]),
+                          int(pts[(p + 3) % 8])),
+                         (0, 0, 255), 2)
 
     imk = cv2.resize(im, (1280, 720))  # visualization
-    cv2.imshow('Dectecting results syn.', imk)
+    cv2.imshow('detections with absolute coordinates.', imk)
     cv2.waitKey(3000)
 
 def nps(dets, cdets):
