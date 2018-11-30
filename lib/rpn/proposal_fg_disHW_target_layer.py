@@ -48,10 +48,11 @@ class ProposalFgDisHWTargetLayer(caffe.Layer):
         """
         # Algorithm:
         #
+        # Step. Include ground-truth boxes in the set of candidate rois
         # Step. Measure GT overlap and assign proposals to gt
         # Step. Produces proposals classification labels.
         # Step. Subsample labels if we have too many
-        # Step. Produce bounding-box regression targets with label infomation
+        # Step. Produce bounding-box regression targets with label information
         # Step. Resize and drop label information to get new bounding-box
         # regression targets
         # all the above steps are in called function: syn_sample_rois()
@@ -63,6 +64,7 @@ class ProposalFgDisHWTargetLayer(caffe.Layer):
         """
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
         # (i.e., rpn.proposal_layer.ProposalLayer), or any other source
+        # the first 0 is the fixed batch item index
         all_rois = bottom[0].data
         # GT boxes (x1, y1, x2, y2, label)
         # TODO(rbg): it's annoying that sometimes I have extra info before
@@ -73,7 +75,8 @@ class ProposalFgDisHWTargetLayer(caffe.Layer):
 
         gt_boxes = gt_boxes.reshape(gt_boxes.shape[0], gt_boxes.shape[1])
         gt_info = gt_info.reshape(gt_info.shape[0], gt_info.shape[1])
-        # Include ground-truth boxes in the set of candidate rois
+        # Step. Include ground-truth boxes in the set of candidate rois
+        # zeros is the batch item index: 0
         zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
         # add the gt_boxes to the rois
         all_rois = np.vstack(

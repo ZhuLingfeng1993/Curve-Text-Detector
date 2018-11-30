@@ -235,7 +235,15 @@ def info_syn_transform_hw(ex_rois, gt_info):
     targets_dp14w = ( gt_p14w - ex_widths) * 0.5 / ex_widths
 
     encode_0 = np.zeros_like(targets_dp1w)
-    targets = np.vstack((encode_0, encode_0, targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, targets_dp5h, targets_dp6h, targets_dp7h, targets_dp8h, targets_dp9h, targets_dp10h, targets_dp11h, targets_dp12h, targets_dp13h, targets_dp14h, encode_0, encode_0, targets_dp1w, targets_dp2w, targets_dp3w, targets_dp4w, targets_dp5w, targets_dp6w, targets_dp7w, targets_dp8w, targets_dp9w, targets_dp10w, targets_dp11w, targets_dp12w, targets_dp13w, targets_dp14w)).transpose() # 44
+    targets = np.vstack((encode_0, encode_0,
+                         targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h,
+                         targets_dp5h, targets_dp6h, targets_dp7h, targets_dp8h,
+                         targets_dp9h, targets_dp10h, targets_dp11h, targets_dp12h,
+                         targets_dp13h, targets_dp14h, encode_0, encode_0,
+                         targets_dp1w, targets_dp2w, targets_dp3w, targets_dp4w,
+                         targets_dp5w, targets_dp6w, targets_dp7w, targets_dp8w,
+                         targets_dp9w, targets_dp10w, targets_dp11w, targets_dp12w,
+                         targets_dp13w, targets_dp14w)).transpose() # 44
     return targets
 
 def info_syn_transform_inv_h(boxes, deltas):
@@ -392,7 +400,11 @@ def qua_info_syn_transform_hw(ex_rois, gt_info):
     targets_dp4w = (gt_p4w - ex_widths) * 0.5 / ex_widths
 
     encode_0 = np.zeros_like(targets_dp1w)
-    targets = np.vstack((encode_0, encode_0, targets_dp1h, targets_dp2h, targets_dp3h, targets_dp4h, encode_0, encode_0, targets_dp1w, targets_dp2w,
+    targets = np.vstack((encode_0, encode_0,
+                         targets_dp1h, targets_dp2h,
+                         targets_dp3h, targets_dp4h,
+                         encode_0, encode_0,
+                         targets_dp1w, targets_dp2w,
                          targets_dp3w, targets_dp4w)).transpose()  # 44
     return targets
 

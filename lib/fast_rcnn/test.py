@@ -244,7 +244,7 @@ def vis_detections_opencv(im, class_name, dets, thresh=0.3):
             cv2.rectangle(im, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255), 2)
     im = cv2.resize(im, (1280, 720))
     cv2.imshow('Dectecting results.', im)
-    cv2.waitKey(0)
+    cv2.waitKey(30)
 
 
 def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):

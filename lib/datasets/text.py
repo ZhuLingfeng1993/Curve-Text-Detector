@@ -119,7 +119,8 @@ class icdar2015ch4(imdb_text):
                 vis = False
                 # vis image and label
                 if vis:
-                    from fast_rcnn.test import vis_detections, vis_detections_opencv,vis_detections_opencv_data_testing
+                    from fast_rcnn.test import vis_detections,\
+                        vis_detections_opencv,vis_detections_opencv_data_testing
                     import cv2
                     # detections with class score: (x1, y1, x2, y2, score)
                     cls_dets = np.hstack((box, np.ones(box.shape[0])[:, np.newaxis])) \
@@ -129,9 +130,10 @@ class icdar2015ch4(imdb_text):
                         .astype(np.float32, copy=False)
                     # Read image
                     im = cv2.imread(label['imagePath'])
-                    #vis_detections(im, 'text', cls_dets)
-                    #vis_detections_opencv(im, 'text', cls_dets)
-                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo, None, abs=False)
+                    # vis_detections(im, 'text', cls_dets)
+                    # vis_detections_opencv(im, 'text', cls_dets)
+                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo,
+                                                       None, abs=False)
 
                 labels.append(label)
         print "load images number = {}".format(len(labels))
