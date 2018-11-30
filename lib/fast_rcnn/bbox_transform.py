@@ -406,6 +406,12 @@ def qua_info_syn_transform_hw(ex_rois, gt_info):
                          encode_0, encode_0,
                          targets_dp1w, targets_dp2w,
                          targets_dp3w, targets_dp4w)).transpose()  # 44
+
+    if cfg.NUM_REF_POINTS == 0:
+        targets = np.vstack((targets_dp1h, targets_dp2h,
+                             targets_dp3h, targets_dp4h,
+                             targets_dp1w, targets_dp2w,
+                             targets_dp3w, targets_dp4w)).transpose()
     return targets
 
 
@@ -415,10 +421,10 @@ def qua_info_syn_transform_inv_h(boxes, deltas):
         return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
     assert len(deltas[0, :]) == (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 'info_inv length wrong'
 
-    dp1h = deltas[:, 2::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp2h = deltas[:, 3::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp3h = deltas[:, 4::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp4h = deltas[:, 5::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp1h = deltas[:, cfg.NUM_REF_POINTS+0::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp2h = deltas[:, cfg.NUM_REF_POINTS+1::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp3h = deltas[:, cfg.NUM_REF_POINTS+2::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp4h = deltas[:, cfg.NUM_REF_POINTS+3::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
 
     boxes = boxes.astype(deltas.dtype, copy=False)
 
@@ -432,7 +438,7 @@ def qua_info_syn_transform_inv_h(boxes, deltas):
     pred_dp3h = dp3h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
     pred_dp4h = dp4h * heights[:, np.newaxis] / 0.5 + heights[:, np.newaxis]
 
-    pred = np.zeros((deltas.shape[0], deltas.shape[1] - 2), dtype=deltas.dtype)
+    pred = np.zeros((deltas.shape[0], deltas.shape[1] - cfg.NUM_REF_POINTS), dtype=deltas.dtype)
 
     pred[:, 0::cfg.NUM_QUA_POINTS] = pred_dp1h
     pred[:, 1::cfg.NUM_QUA_POINTS] = pred_dp2h
@@ -448,10 +454,10 @@ def qua_info_syn_transform_inv_w(boxes, deltas):
         return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
     assert len(deltas[0, :]) == (cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS), 'info_inv length wrong'
 
-    dp1w = deltas[:, 2::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp2w = deltas[:, 3::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp3w = deltas[:, 4::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
-    dp4w = deltas[:, 5::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp1w = deltas[:, cfg.NUM_REF_POINTS+0::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp2w = deltas[:, cfg.NUM_REF_POINTS+1::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp3w = deltas[:, cfg.NUM_REF_POINTS+2::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
+    dp4w = deltas[:, cfg.NUM_REF_POINTS+3::(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)]
 
     boxes = boxes.astype(deltas.dtype, copy=False)
 
@@ -463,7 +469,7 @@ def qua_info_syn_transform_inv_w(boxes, deltas):
     pred_dp3w = dp3w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
     pred_dp4w = dp4w * widths[:, np.newaxis] / 0.5 + widths[:, np.newaxis]
 
-    pred = np.zeros((deltas.shape[0], deltas.shape[1] - 2), dtype=deltas.dtype)
+    pred = np.zeros((deltas.shape[0], deltas.shape[1] - cfg.NUM_REF_POINTS), dtype=deltas.dtype)
 
     pred[:, 0::cfg.NUM_QUA_POINTS] = pred_dp1w
     pred[:, 1::cfg.NUM_QUA_POINTS] = pred_dp2w

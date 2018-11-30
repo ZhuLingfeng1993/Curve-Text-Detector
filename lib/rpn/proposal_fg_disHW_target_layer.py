@@ -219,8 +219,10 @@ def syn_compute_targets(ex_rois, gt_rois, gt_info, labels):
     targets = bbox_transform(ex_rois, gt_rois)
     # curve
     # targets_2 = info_syn_transform_hw(ex_rois, gt_info)
-    # targets_2 = qua_transform(ex_rois, gt_info)
-    targets_2 = qua_info_syn_transform_hw(ex_rois, gt_info)
+    if cfg.USE_MY_REG:
+        targets_2 = qua_transform(ex_rois, gt_info)
+    else:
+        targets_2 = qua_info_syn_transform_hw(ex_rois, gt_info)
 
     if DEBUG:
         print 'targets after bbox_transform:'

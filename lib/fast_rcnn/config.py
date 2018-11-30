@@ -80,6 +80,13 @@ __C.TRAIN.USE_PREFETCH = False
 
 # Normalize the targets (subtract empirical mean, divide by empirical stddev)
 __C.TRAIN.BBOX_NORMALIZE_TARGETS = True
+
+# Number of quadrilateral points
+__C.NUM_QUA_POINTS = 4
+
+# Number of ref points
+__C.NUM_REF_POINTS = 2
+
 # Deprecated (inside weights)
 __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 
@@ -87,7 +94,6 @@ __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 __C.TRAIN.INFO_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0,
                                  1.0, 1.0, 1.0, 1.0,
                                  1.0, 1.0, 1.0, 1.0) # 8
-
 
 # Normalize the targets using "precomputed" (or made up) means and stdevs
 # (BBOX_NORMALIZE_TARGETS must also be True)
@@ -101,6 +107,11 @@ __C.TRAIN.INFO_NORMALIZE_MEANS = (0.0, 0.0, 0.0, 0.0,
 __C.TRAIN.INFO_NORMALIZE_STDS = (1, 1, 1, 1,
                                  1, 1, 1, 1,
                                  1, 1, 1, 1) # 8
+
+if __C.NUM_REF_POINTS ==0:
+    __C.TRAIN.INFO_INSIDE_WEIGHTS = __C.TRAIN.INFO_INSIDE_WEIGHTS[:8]
+    __C.TRAIN.INFO_NORMALIZE_MEANS = __C.TRAIN.INFO_NORMALIZE_MEANS[:8]
+    __C.TRAIN.INFO_NORMALIZE_STDS = __C.TRAIN.INFO_NORMALIZE_STDS[:8]
 
 __C.TRAIN.RPN_NORMALIZE_TARGETS = False
 __C.TRAIN.RPN_NORMALIZE_MEANS = None
@@ -237,11 +248,8 @@ __C.USE_GPU_IN_CAFFE = True
 # Number of images to use, -1 for all
 __C.NUM_IMAGES = -1
 
-# Number of quadrilateral points
-__C.NUM_QUA_POINTS = 4
-
-# Number of ref points
-__C.NUM_REF_POINTS = 2
+# Use my own regression
+__C.USE_MY_REG = False
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.

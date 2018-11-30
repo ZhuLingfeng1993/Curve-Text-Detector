@@ -200,12 +200,14 @@ def im_detect(net, im, boxes=None, info=False):
     # Apply quadrilateral points regression deltas
     if info:
         info_deltas_h = blobs_out['info_pred_h']
-        # pred_infos_h =info_syn_transform_inv_h(boxes, info_deltas_h)
-        pred_infos_h = qua_info_syn_transform_inv_h(boxes, info_deltas_h)
         info_deltas_w = blobs_out['info_pred_w']
-        # pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
-        pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
-        # pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
+        if cfg.USE_MY_REG:
+          pred_infos_h, pred_infos_w = qua_transform_inv(boxes, info_deltas_h, info_deltas_w)
+        else:
+            # pred_infos_h =info_syn_transform_inv_h(boxes, info_deltas_h)
+            pred_infos_h = qua_info_syn_transform_inv_h(boxes, info_deltas_h)
+            # pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
+            pred_infos_w = qua_info_syn_transform_inv_w(boxes, info_deltas_w)
         assert len(boxes) == len(pred_infos_h) == len(pred_infos_w)
 
     if info:
@@ -252,7 +254,7 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
     for i in xrange(np.minimum(100, dets.shape[0])):
         bbox = dets[i, :4]
         score = dets[i, 4]
-        info_bbox = dets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]  # syn
+        info_bbox = dets[i, 5:2*(cfg.NUM_QUA_POINTS)+5]  # syn
         pts = [info_bbox[i] for i in xrange(2*cfg.NUM_QUA_POINTS)]
         # print pts
         # a = input('stop check')
@@ -308,11 +310,14 @@ def nps(dets, cdets):
     Keep valid polygons with area > threshold
     """
     delete_inds = []
-    area_thresh = 1
+    area_thresh = 10
+    # for cpu fast test, ensure there are detections
+    if cfg.USE_GPU_IN_CAFFE == False:
+        area_thresh = 1
     for i in xrange(cdets.shape[0]):
         bbox = cdets[i, :4]
         score = cdets[i, 4]
-        info_bbox = cdets[i, 5:2*(cfg.NUM_QUA_POINTS+cfg.NUM_REF_POINTS)+1]
+        info_bbox = cdets[i, 5:2*(cfg.NUM_QUA_POINTS)+5]
         pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j + 1]) for j in xrange(0, 2*cfg.NUM_QUA_POINTS, 2)]
 
         # print('try ploygon test')
