@@ -1,4 +1,4 @@
-name: "Q_RFCN_With_Ref_ResNet50_train"
+name: "Q_RFCN_TLOC_With_Ref_OHEM_ResNet50_train"
 layer {
   name: 'input-data'
   type: 'Python'

@@ -1,4 +1,4 @@
-name: "Q_RFCN_With_Ref_ResNet50_test"
+name: "Q_RFCN_TLOC_With_Ref_ResNet50_test"
 
 input: "data"
 input_shape {
