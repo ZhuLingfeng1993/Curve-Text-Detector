@@ -136,7 +136,7 @@ class icdar2015ch4(imdb_text):
                                                        None, abs=False)
 
                 labels.append(label)
-        print "load images number = {}".format(len(labels))
+        print "\nload images number = {}\n".format(len(labels))
         return labels
 
     ################## the images' path and names
@@ -183,12 +183,18 @@ class icdar2015ch4(imdb_text):
                 'imagePath': gt_name}
 
     def _load_roidb(self, labels):
+        print 'Loading {} gt roidb...'.format(self.name)
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
-            print '{} gt roidb loaded from {}'.format(self.name, cache_file)
-            return roidb
+            print 'Cache file already exists: {}'.format(cache_file)
+            use_update = raw_input('If you have not modify anything about train data set'
+                                   ' or gt roidb, input \'u\' to update it or '
+                                   'press any other key to use cache.')
+            if use_update != 'u':
+                with open(cache_file, 'rb') as fid:
+                    roidb = cPickle.load(fid)
+                print '{} gt roidb loaded from {}'.format(self.name, cache_file)
+                return roidb
 
         num = len(labels)
         print 'load sample number = ', num
@@ -247,6 +253,7 @@ class icdar2015ch4(imdb_text):
                     if dets == []:
                         continue
                     for k in xrange(dets.shape[0]):
+                        # (ind  score  x1  y1  x2  y2  x3  y3  x4  y4)
                         f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
                                 format(str(index), dets[k, 4],
                                        dets[k, 0] + 1 + dets[k, 5], dets[k, 1] + 1 + dets[k, 6],
