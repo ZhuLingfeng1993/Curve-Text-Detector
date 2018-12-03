@@ -252,7 +252,10 @@ __C.NUM_IMAGES = -1
 __C.USE_MY_REG = False
 
 # Force to update cache file
-__C.FORCE_UPDATE_CACHE = False
+__C.FORCE_UPDATE_CACHE = True
+
+# Visualize data set
+__C.VIS_DATASET = False
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.

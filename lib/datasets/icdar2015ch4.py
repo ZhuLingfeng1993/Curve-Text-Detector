@@ -1,5 +1,7 @@
 # coding=utf-8
 import os
+
+import cv2
 from datasets.imdb import imdb_text
 import datasets.ds_utils as ds_utils
 import numpy as np
@@ -17,6 +19,40 @@ from shapely.geometry import Polygon
 from shapely.geometry import Point
 
 
+def vis_data(boxes, polygons, image_path, rel_polygon=True):
+    """
+    Visualize data by showing one image and label.
+    :param boxes:
+    :param polygons:
+    :param image_path:
+    :param rel_polygon: if the coordinates of polygon is relative to
+                        left top point of bounding box or not
+    :return:
+    """
+    assert (boxes.shape[0] == polygons.shape[0]),\
+        'boxes and polygons should have equal row number.'
+    import cv2
+    # Read image
+    img = cv2.imread(image_path)
+    #
+    if rel_polygon:
+        # change polygons from relative coordinates into absolute
+        # ones to left top of boxes
+        lt_point_tile = np.tile(boxes[:, 0:2], (1, 4))
+        # (N,8) = (N,8) - (N,2)
+        polygons = polygons + lt_point_tile
+    # plot polygons
+    n_coors = polygons.shape[1]
+    assert (n_coors % 2 == 0), 'n_coors % 2 should be 0 '
+    for polygon in polygons:
+        for j in xrange(0, n_coors, 2):
+            p1 = (int(polygon[j % n_coors]),int(polygon[(j + 1) % n_coors]))
+            p2 = (int(polygon[(j + 2) % n_coors]), int(polygon[(j + 3) % n_coors]))
+            cv2.line(img, p1, p2, (0, 0, 255), 2)
+    imk = cv2.resize(img, (1280, 720))  # visualization
+    cv2.imshow('data visulization.', imk)
+    cv2.waitKey(2000)
+
 class icdar2015ch4(imdb_text):
     def __init__(self, dataset):
         imdb_text.__init__(self, dataset['name'])
@@ -24,7 +60,7 @@ class icdar2015ch4(imdb_text):
         self._image_list_file = dataset['image_list_file']
         self._classes = ('__background__', 'text')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        self._salt = str(uuid.uuid4()) # 通用唯一识别码（Universally Unique Identifier）
+        self._salt = str(uuid.uuid4())  # 通用唯一识别码（Universally Unique Identifier）
         self._comp_id = 'comp4'
 
         # PASCAL specific config options
@@ -55,85 +91,70 @@ class icdar2015ch4(imdb_text):
             'gt_info': 4 points xy coordinates of each quadrilateral box, size = (M,8)
         """
         labels = []
-        with open(self._label_list_file, 'r') as fs, open(self._image_list_file.strip(), 'r') as pimgs:
+        with open(self._label_list_file, 'r') as fs, \
+                open(self._image_list_file.strip(), 'r') as pimgs:
             label_files = fs.readlines()
             imgs_path = pimgs.readlines()
-            assert (len(label_files) == len(imgs_path)), 'image lists and labels list should be the same.'
-            assert (cfg.NUM_IMAGES <= len(label_files)), 'NUM_IMAGES should be no larger than image lists number'
+            assert (len(label_files) == len(imgs_path)), \
+                'image lists and labels list should be the same.'
+            assert (cfg.NUM_IMAGES <= len(label_files)), \
+                'NUM_IMAGES should be no larger than image lists number'
+            # Number of images to use
             if cfg.NUM_IMAGES != -1:
                 label_files = label_files[:cfg.NUM_IMAGES]
                 imgs_path = imgs_path[:cfg.NUM_IMAGES]
-            for ix, file in enumerate(label_files):
-                assert (os.path.basename(file.strip())[3:-4] == os.path.basename(imgs_path[ix].strip())[
-                    :-4]), 'label list does not match image list'
+            for ix, label_file in enumerate(label_files):
+                assert (os.path.basename(label_file.strip())[3:-4] ==
+                        os.path.basename(imgs_path[ix].strip())[:-4]), \
+                    'label list does not match image list'
                 label = {}
-                # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
-                label_file = os.path.join(cfg.DATA_DIR, file.strip())
+                # each line in self._label_list_file is a relative path of data set name,
+                # so join the DATA_DIR, so does the image path
+                label_file = os.path.join(cfg.DATA_DIR, label_file.strip())
                 label['name'] = label_file
-                label['imagePath'] = os.path.join(cfg.DATA_DIR, imgs_path[ix].strip())  # image path
-                img_tmp = Image.open(label['imagePath'])
+                label['imagePath'] = os.path.join(cfg.DATA_DIR, imgs_path[ix].strip())
+                img = Image.open(label['imagePath'])
+
                 with open(label_file, 'r') as f:
                     # rm utf8 info
-                    lightSen = []
+                    line_boxes = []
                     for line in f.readlines():
                         if '\xef\xbb\xbf' in line:
-                            str1 = line.replace('\xef\xbb\xbf', '')  # 用replace替换掉'\xef\xbb\xbf'
-                            lightSen.append(str1.strip())  # strip()去掉\n
+                            # 用replace替换掉'\xef\xbb\xbf'
+                            str1 = line.replace('\xef\xbb\xbf', '')
+                            # strip()去掉\n
+                            line_boxes.append(str1.strip())
                         else:
-                            lightSen.append(line.strip())
-                    line_boxes = lightSen
-
+                            line_boxes.append(line.strip())
                     num_boxes = len(line_boxes)
                     # quadrilateral points: (x1, y1, x2, y2, x3, y3, x4, y4)
                     gt_info = np.zeros((num_boxes, 8), np.float32)  # syn
                     # circumscribed rectangle box: (xmin, ymin, xmax, ymax)
-                    box = np.zeros((num_boxes, 4), np.float32)
-                    for ix, line in enumerate(line_boxes):
+                    boxes = np.zeros((num_boxes, 4), np.float32)
+                    for line_idx, line in enumerate(line_boxes):
                         items = re.split(',', line)  # coordinates
-                        gt_info[ix, :] = [float(items[i].strip()) for i in range(0, 8)]
-                        tuple_points = [(gt_info[ix, ind_p:ind_p + 2]) for ind_p in [0, 2, 4, 6]]
+                        gt_info[line_idx, :] = [float(items[i].strip()) for i in range(0, 8)]
+                        tuple_points = [(gt_info[line_idx, ind_p:ind_p + 2])
+                                        for ind_p in [0, 2, 4, 6]]
                         quadrilateral = Polygon(tuple_points)
-                        assert quadrilateral.is_valid, ('Not a valid quadrilateral: {}'.format(line))
-
-                        box[ix, :] = quadrilateral.bounds
-
-                        assert (int(box[ix, 0]) >= 0), 'xmin should larger than 0 ' + int(box[ix, 0])
-                        assert (int(box[ix, 1]) >= 0), 'ymin should larger than 0 ' + int(box[ix, 1])
-                        assert (int(box[ix, 2]) <= int(img_tmp.size[0])), 'xmax outside image border ' + int(
-                            box[ix, 2]) + ' ' + str(img_tmp.size[0])
-                        assert (int(box[ix, 3]) <= int(img_tmp.size[1])), 'ymax outside image border' + int(
-                            box[ix, 3]) + ' ' + str(img_tmp.size[1])
-                        assert (int(box[ix, 0]) < int(box[ix, 2])), 'xmin should less than xmax' + int(
-                            box[ix, 0]) + ' ' + int(box[ix, 2])
-                        assert (int(box[ix, 1]) < int(box[ix, 3])), 'ymin should less than ymax' + int(
-                            box[ix, 1]) + ' ' + int(box[ix, 3])
-
-                # change gt_info from absolute coordinates into relative ones to left top of box
-                lt_point_tile = np.tile(box[:, 0:2], (1, 4))
+                        assert quadrilateral.is_valid, \
+                            ('Not a valid quadrilateral: {}'.format(line))
+                        # get polygon bounding box
+                        box = quadrilateral.bounds
+                        self.check_box(box, img.size)
+                        boxes[line_idx, :] = box
+                # change gt_info from absolute coordinates into relative
+                # ones to left top of boxes
+                lt_point_tile = np.tile(boxes[:, 0:2], (1, 4))
                 # (N,8) = (N,8) - (N,2)
                 gt_info_rel = gt_info - lt_point_tile
 
-                label['gt_boxes'] = box
+                label['gt_boxes'] = boxes
                 label['gt_info'] = gt_info_rel  # syn
 
-                vis = False
                 # vis image and label
-                if vis:
-                    from fast_rcnn.test import vis_detections,\
-                        vis_detections_opencv,vis_detections_opencv_data_testing
-                    import cv2
-                    # detections with class score: (x1, y1, x2, y2, score)
-                    cls_dets = np.hstack((box, np.ones(box.shape[0])[:, np.newaxis])) \
-                        .astype(np.float32, copy=False)
-
-                    cls_dets_withInfo = np.hstack((cls_dets, gt_info_rel)) \
-                        .astype(np.float32, copy=False)
-                    # Read image
-                    im = cv2.imread(label['imagePath'])
-                    # vis_detections(im, 'text', cls_dets)
-                    # vis_detections_opencv(im, 'text', cls_dets)
-                    vis_detections_opencv_data_testing(im, 'text', cls_dets_withInfo,
-                                                       None, abs=False)
+                if cfg.VIS_DATASET:
+                    vis_data(boxes, gt_info_rel, label['imagePath'], rel_polygon=True)
 
                 labels.append(label)
         print "\nload images number = {}\n".format(len(labels))
@@ -176,9 +197,11 @@ class icdar2015ch4(imdb_text):
 
         gt_classes[:] = cls
 
-        return {'boxes': gt_boxes,  # circumscribed rectangle of polygon box ,size = (M,4), M is number of boxes
+        return {'boxes': gt_boxes,  # circumscribed rectangle of polygon boxes ,
+                                    # size = (M,4), M is number of boxes
                 'gt_classes': gt_classes,  #
-                'gt_info': gt_info,  # syn # 4 points xy coordinates of each polygon box, size = (M,8)
+                'gt_info': gt_info,  # 4 points xy coordinates of
+                                     # each polygon boxes, size = (M,8)
                 'flipped': False,
                 'imagePath': gt_name}
 
@@ -191,9 +214,9 @@ class icdar2015ch4(imdb_text):
             if not cfg.FORCE_UPDATE_CACHE:
                 print 'Cache file already exists: {}'.format(cache_file)
                 use_update = raw_input('If you have not modify anything about train data set'
-                                   ' or gt roidb, input \'u\' to update it or '
-                                   'press any other key to use cache.\n'
-                                   'Your input is: ')
+                                       ' or gt roidb, input \'u\' to update it or '
+                                       'press any other key to use cache.\n'
+                                       'Your input is: ')
             # interactively chosen not update, then use c
             # interactively not update, use cache
             if use_update != 'u':
@@ -285,22 +308,22 @@ class icdar2015ch4(imdb_text):
                         pts = [info_bbox[i] for i in xrange(28)]
                         f.write(
                             '{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
-                            format(str(index), dets[k, 4],
-                                   dets[k, 0] + pts[0], dets[k, 1] + pts[1],
-                                   dets[k, 0] + pts[2], dets[k, 1] + pts[3],
-                                   dets[k, 0] + pts[4], dets[k, 1] + pts[5],
-                                   dets[k, 0] + pts[6], dets[k, 1] + pts[7],
-                                   dets[k, 0] + pts[8], dets[k, 1] + pts[9],
-                                   dets[k, 0] + pts[10], dets[k, 1] + pts[11],
-                                   dets[k, 0] + pts[12], dets[k, 1] + pts[13],
-                                   dets[k, 0] + pts[14], dets[k, 1] + pts[15],
-                                   dets[k, 0] + pts[16], dets[k, 1] + pts[17],
-                                   dets[k, 0] + pts[18], dets[k, 1] + pts[19],
-                                   dets[k, 0] + pts[20], dets[k, 1] + pts[21],
-                                   dets[k, 0] + pts[22], dets[k, 1] + pts[23],
-                                   dets[k, 0] + pts[24], dets[k, 1] + pts[25],
-                                   dets[k, 0] + pts[26], dets[k, 1] + pts[27]
-                                   ))
+                                format(str(index), dets[k, 4],
+                                       dets[k, 0] + pts[0], dets[k, 1] + pts[1],
+                                       dets[k, 0] + pts[2], dets[k, 1] + pts[3],
+                                       dets[k, 0] + pts[4], dets[k, 1] + pts[5],
+                                       dets[k, 0] + pts[6], dets[k, 1] + pts[7],
+                                       dets[k, 0] + pts[8], dets[k, 1] + pts[9],
+                                       dets[k, 0] + pts[10], dets[k, 1] + pts[11],
+                                       dets[k, 0] + pts[12], dets[k, 1] + pts[13],
+                                       dets[k, 0] + pts[14], dets[k, 1] + pts[15],
+                                       dets[k, 0] + pts[16], dets[k, 1] + pts[17],
+                                       dets[k, 0] + pts[18], dets[k, 1] + pts[19],
+                                       dets[k, 0] + pts[20], dets[k, 1] + pts[21],
+                                       dets[k, 0] + pts[22], dets[k, 1] + pts[23],
+                                       dets[k, 0] + pts[24], dets[k, 1] + pts[25],
+                                       dets[k, 0] + pts[26], dets[k, 1] + pts[27]
+                                       ))
 
                     #########################call voc_eval to evaluate the rec and prec ,mAP
 
@@ -321,8 +344,8 @@ class icdar2015ch4(imdb_text):
             # filename, self._label_list_file, self._image_list_file, cls, cachedir, ovthresh=0.5,
             # use_07_metric=use_07_metric)
             rec, prec, ap = voc_eval_polygon(
-                        filename, self._label_list_file, self._image_list_file,
-                        cls, cachedir, ovthresh=0.5, use_07_metric=use_07_metric)
+                filename, self._label_list_file, self._image_list_file,
+                cls, cachedir, ovthresh=0.5, use_07_metric=use_07_metric)
             F = 2.0 / (1 / rec[-1] + 1 / prec[-1])
             # print F
             if not os.path.isdir('results'):
@@ -354,9 +377,10 @@ class icdar2015ch4(imdb_text):
         self._qua_write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir)
 
-
     def competition_mode(self, on):
         if on:
             self.config['use_salt'] = False
         else:
             self.config['use_salt'] = True
+
+        
