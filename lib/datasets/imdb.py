@@ -93,6 +93,30 @@ class imdb_text(object):
       return [PIL.Image.open(self.image_path_at(i)).size[0]
               for i in xrange(self.num_images)]
 
+    def check_box(self, box, img_size):
+        """
+        check if the box is in the image
+        :param box: list of [x_min, y_min, x_max, y_max]
+        :param img_size: list of image size [width, height]
+        :return: None
+        """
+        assert (int(box[0]) >= 0), \
+            'xmin should larger than 0 ' + int(box[0])
+        assert (int(box[1]) >= 0), \
+            'ymin should larger than 0 ' + int(box[1])
+        assert (int(box[2]) <= img_size[0]), \
+            'xmax outside image border ' + \
+            int(box[2]) + ' ' + str(img_size[0])
+        assert (int(box[3]) <= img_size[1]), \
+            'ymax outside image border' + int(
+                box[3]) + ' ' + str(img_size[1])
+        assert (int(box[0]) < int(box[2])), \
+            'xmin should less than xmax' + int(
+                box[0]) + ' ' + int(box[2])
+        assert (int(box[1]) < int(box[3])), \
+            'ymin should less than ymax' + int(
+                box[1]) + ' ' + int(box[3])
+
     def append_flipped_images(self):
         num_images = self.num_images
         widths = self._get_widths()
