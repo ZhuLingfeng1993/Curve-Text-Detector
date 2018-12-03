@@ -39,8 +39,8 @@ time ./tools/train_net.py
   --solver models/q_rfcn_tloc_with_ref/solver_cpu_fast_version_q_rfcn_tloc_with_ref.prototxt 
   --weights data/imagenet_models/ResNet-50-model.caffemodel 
   --iters 3
-  --imdb "icdar2015ch4"
-  --cfg experiments/cfgs/cpu_fast_version_q_rfcn_tloc_with_ref.yml 
+  --imdb "icdar2015ch4_train"
+  --cfg experiments/cfgs/cpu_fast_version_q_rfcn_tloc_with_ref.yml
   --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt 
   --train_image_list data/icdar2015ch4/ch4_training_images.txt 
 
