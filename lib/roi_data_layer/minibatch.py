@@ -6,22 +6,33 @@ import cv2
 from fast_rcnn.config import cfg
 from utils.blob import prep_im_for_blob, im_list_to_blob
 
+DEBUG = False
+
 def get_minibatch(roidb, num_classes):
-    """Given a roidb, construct a minibatch sampled from it."""
+    """
+    Given a roidb, construct a minibatch sampled from it.
+    :param roidb:
+    :param num_classes:
+    :return:
+    """
     num_images = len(roidb)
     num_reg_class = 2 if cfg.TRAIN.AGNOSTIC else num_classes
     # Sample random scales to use for each image in this batch
     random_scale_inds = npr.randint(0, high=len(cfg.TRAIN.SCALES),
                                     size=num_images)
-    assert(cfg.TRAIN.BATCH_SIZE % num_images == 0) or (cfg.TRAIN.BATCH_SIZE == -1), \
+    assert (cfg.TRAIN.BATCH_SIZE % num_images == 0) or (cfg.TRAIN.BATCH_SIZE == -1), \
         'num_images ({}) must divide BATCH_SIZE ({})'. \
-        format(num_images, cfg.TRAIN.BATCH_SIZE)
-    rois_per_image = np.inf if cfg.TRAIN.BATCH_SIZE == -1 else cfg.TRAIN.BATCH_SIZE / num_images
-    fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image)
+            format(num_images, cfg.TRAIN.BATCH_SIZE)
+    # rois_per_image = np.inf if cfg.TRAIN.BATCH_SIZE == -1 else cfg.TRAIN.BATCH_SIZE / num_images
+    # fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image)
 
     # Get the input image blob, formatted for caffe
     im_blob, im_scales = _get_image_blob(roidb, random_scale_inds)
-
+    if DEBUG:
+        from datasets.icdar2015ch4 import vis_data
+        vis_data('text', roidb[0]['boxes'], roidb[0]['gt_info'], roidb[0]['imagePath'])
+        print roidb[0]['boxes']
+        print roidb[0]['gt_info']
     blobs = {'data': im_blob}
 
     if cfg.TRAIN.HAS_RPN:
@@ -34,11 +45,12 @@ def get_minibatch(roidb, num_classes):
         gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
 
         # quadrilateral
-        gt_info = np.empty((len(gt_inds), 2*cfg.NUM_QUA_POINTS), dtype = np.float32)
-        gt_info[:, :2*cfg.NUM_QUA_POINTS] = roidb[0]['gt_info'][gt_inds, :2*cfg.NUM_QUA_POINTS] * im_scales[0]
+        gt_info = np.empty((len(gt_inds), 2 * cfg.NUM_QUA_POINTS), dtype=np.float32)
+        gt_info[:, :2 * cfg.NUM_QUA_POINTS] = \
+            roidb[0]['gt_info'][gt_inds, :2 * cfg.NUM_QUA_POINTS] * im_scales[0]
 
-        ascii_encode = [ord(i) for i in roidb[0]['imagePath']] # encode image path. For tracking
-        im_info_withPath = [im_blob.shape[2]]+[im_blob.shape[3]]+[im_scales[0]]+ascii_encode
+        ascii_encode = [ord(i) for i in roidb[0]['imagePath']]  # encode image path. For tracking
+        im_info_withPath = [im_blob.shape[2]] + [im_blob.shape[3]] + [im_scales[0]] + ascii_encode
 
         blobs['gt_boxes'] = gt_boxes
 
@@ -47,6 +59,14 @@ def get_minibatch(roidb, num_classes):
             dtype=np.float32)
 
         blobs['gt_info'] = gt_info
+        if DEBUG:
+            print (gt_boxes[:, 0:4])
+            print gt_info
+            from datasets.icdar2015ch4 import vis_data
+            print gt_boxes[0:4] / im_scales[0]
+            print gt_info/ im_scales[0]
+            vis_data('text', gt_boxes[:, 0:4] / im_scales[0],
+                     gt_info / im_scales[0], roidb[0]['imagePath'])
     return blobs
 
 
@@ -67,7 +87,7 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     # Sample foreground regions without replacement
     if fg_inds.size > 0:
         fg_inds = npr.choice(
-                fg_inds, size=fg_rois_per_this_image, replace=False)
+            fg_inds, size=fg_rois_per_this_image, replace=False)
 
     # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
     bg_inds = np.where((overlaps < cfg.TRAIN.BG_THRESH_HI) &
@@ -80,7 +100,7 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     # Sample foreground regions without replacement
     if bg_inds.size > 0:
         bg_inds = npr.choice(
-                bg_inds, size=bg_rois_per_this_image, replace=False)
+            bg_inds, size=bg_rois_per_this_image, replace=False)
 
     # The indices that we're selecting (both fg and bg)
     keep_inds = np.append(fg_inds, bg_inds)
@@ -92,9 +112,10 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     rois = rois[keep_inds]
 
     bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(
-            roidb['bbox_targets'][keep_inds, :], num_classes)
+        roidb['bbox_targets'][keep_inds, :], num_classes)
 
     return labels, overlaps, rois, bbox_targets, bbox_inside_weights
+
 
 def _get_image_blob(roidb, scale_inds):
     """Builds an input blob from the images in the roidb at the specified
@@ -118,10 +139,12 @@ def _get_image_blob(roidb, scale_inds):
 
     return blob, im_scales
 
+
 def _project_im_rois(im_rois, im_scale_factor):
     """Project image RoIs into the rescaled training image."""
     rois = im_rois * im_scale_factor
     return rois
+
 
 def _get_bbox_regression_labels(bbox_target_data, num_classes):
     """Bounding-box regression targets are stored in a compact form in the
