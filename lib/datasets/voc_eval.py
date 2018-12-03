@@ -321,15 +321,20 @@ def voc_eval_polygon(detpath,
 
     use_update = 'u'
     if os.path.isfile(cachefile):
-        print 'Cache file already exists: {}'.format(cachefile)
-        use_update = raw_input('If you have not modify anything about test data set, '
-                               'input \'u\' to update it or press any other key to use cache.')
-        use_update ='u'
-        if use_update != 'u':
-            # load
-            with open(cachefile, 'r') as f:
-                gt_objs_all = cPickle.load(f)
-            print 'test data set annotations loaded from {}'.format(cachefile)
+        # if not force to update cache file, use interactive mode to deal with it
+        if not cfg.FORCE_UPDATE_CACHE:
+            print 'Cache file already exists: {}'.format(cachefile)
+            use_update = raw_input('If you have not modify anything about test data set, '
+                                   'input \'u\' to update it or press any other key to use '
+                                   'cache.\n'
+                                   'Your input is: ')
+            # interactively chosen not update, then use cache
+            if use_update != 'u':
+                # load
+                with open(cachefile, 'r') as f:
+                    gt_objs_all = cPickle.load(f)
+                print 'test data set annotations loaded from {}'.format(cachefile)
+    # load new annotations or update annotations
     if use_update == 'u':
         # load annots
         gt_objs_all = {}

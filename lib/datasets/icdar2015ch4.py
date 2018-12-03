@@ -186,16 +186,22 @@ class icdar2015ch4(imdb_text):
         print 'Loading {} gt roidb...'.format(self.name)
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
-            print 'Cache file already exists: {}'.format(cache_file)
-            use_update = raw_input('If you have not modify anything about train data set'
+            use_update = 'u'
+            # if not force to update cache file, use interactive mode to deal with it
+            if not cfg.FORCE_UPDATE_CACHE:
+                print 'Cache file already exists: {}'.format(cache_file)
+                use_update = raw_input('If you have not modify anything about train data set'
                                    ' or gt roidb, input \'u\' to update it or '
-                                   'press any other key to use cache.')
+                                   'press any other key to use cache.\n'
+                                   'Your input is: ')
+            # interactively chosen not update, then use c
+            # interactively not update, use cache
             if use_update != 'u':
                 with open(cache_file, 'rb') as fid:
                     roidb = cPickle.load(fid)
                 print '{} gt roidb loaded from {}'.format(self.name, cache_file)
                 return roidb
-
+        # load new roidb or update roidb
         num = len(labels)
         print 'load sample number = ', num
         gt_roidb = [self._load_icdar2015ch4_annotation(labels, i) for i in range(num)]
@@ -315,8 +321,8 @@ class icdar2015ch4(imdb_text):
             # filename, self._label_list_file, self._image_list_file, cls, cachedir, ovthresh=0.5,
             # use_07_metric=use_07_metric)
             rec, prec, ap = voc_eval_polygon(
-                filename, self._label_list_file, self._image_list_file, cls, cachedir, ovthresh=0.5,
-                use_07_metric=use_07_metric)
+                        filename, self._label_list_file, self._image_list_file,
+                        cls, cachedir, ovthresh=0.5, use_07_metric=use_07_metric)
             F = 2.0 / (1 / rec[-1] + 1 / prec[-1])
             # print F
             if not os.path.isdir('results'):

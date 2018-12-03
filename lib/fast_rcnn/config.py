@@ -251,6 +251,9 @@ __C.NUM_IMAGES = -1
 # Use my own regression
 __C.USE_MY_REG = False
 
+# Force to update cache file
+__C.FORCE_UPDATE_CACHE = False
+
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.
     If the directory does not exist, it is created.
