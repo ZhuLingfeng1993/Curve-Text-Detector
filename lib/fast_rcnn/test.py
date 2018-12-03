@@ -1,20 +1,16 @@
 from fast_rcnn.config import cfg, get_output_dir
-from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv, info_syn_transform_inv_h, info_syn_transform_inv_w
+from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv
 from fast_rcnn.bbox_transform import qua_transform_inv
 from fast_rcnn.bbox_transform import qua_info_syn_transform_inv_h, qua_info_syn_transform_inv_w
-import argparse
 from utils.timer import Timer
 import numpy as np
 import cv2
-import caffe
 from fast_rcnn.nms_wrapper import nms, pnms
 import cPickle
 from utils.blob import im_list_to_blob
 import os
 
-import re
 from shapely.geometry import *
-import matplotlib.pyplot as plts
 
 
 def _get_image_blob(im):
@@ -276,33 +272,6 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
     cv2.imshow('Dectecting results syn.', imk)
     cv2.waitKey(0)
 
-def vis_detections_opencv_data_testing(im, class_name, dets, out_filename, abs=True, thresh=0.3, ):
-    """Visual debugging of detections with absolute coordinates."""
-    for i in xrange(np.minimum(100, dets.shape[0])):
-        bbox = dets[i, :4]
-        score = dets[i, 4]
-        info_bbox = dets[i, 5:13]  # syn
-        pts = [info_bbox[i] for i in xrange(8)]
-        # print pts
-        # a = input('stop check')
-        assert (len(pts) == 8), 'wrong length.'
-        x_min = int(bbox[0])
-        y_min = int(bbox[1])
-        if abs:
-            x_min = 0
-            y_min = 0
-        if score > thresh:
-            for p in xrange(0, 8, 2):
-                cv2.line(im,
-                         (x_min + int(pts[p % 8]),
-                          y_min + int(pts[(p + 1) % 8])),
-                         (x_min + int(pts[(p + 2) % 8]),
-                          y_min + int(pts[(p + 3) % 8])),
-                         (0, 0, 255), 2)
-
-    imk = cv2.resize(im, (1280, 720))  # visualization
-    cv2.imshow('detections with absolute coordinates.', imk)
-    cv2.waitKey(3000)
 
 def nps(dets, cdets):
     """
@@ -313,11 +282,11 @@ def nps(dets, cdets):
     area_thresh = 10
     # for cpu fast test, ensure there are detections
     if cfg.USE_GPU_IN_CAFFE == False:
-        area_thresh = 1
+        area_thresh = 4
     for i in xrange(cdets.shape[0]):
         bbox = cdets[i, :4]
         score = cdets[i, 4]
-        info_bbox = cdets[i, 5:2*(cfg.NUM_QUA_POINTS)+5]
+        info_bbox = cdets[i, 5:2 * cfg.NUM_QUA_POINTS + 5]
         pts = [(int(bbox[0]) + info_bbox[j], int(bbox[1]) + info_bbox[j + 1]) for j in xrange(0, 2*cfg.NUM_QUA_POINTS, 2)]
 
         # print('try ploygon test')
@@ -428,11 +397,11 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
             score_thresh = 0.5
             # for cpu fast test, ensure there are detections
             if cfg.USE_GPU_IN_CAFFE == False:
-                score_thresh = 0.4
+                score_thresh = 0.48
             inds = np.where(scores[:, j] > score_thresh)[0]
             ind_35 = np.where((scores[:, j] > 0.3))[0]
-            print "thresh>0.5:   ", len(inds)
-            print "0.5>thresh>0.3:   ", len(ind_35)
+            print "thresh>{}:   ".format(score_thresh), len(inds)
+            print "{}>thresh>0.3:   ".format(score_thresh), len(ind_35)
             print "all:   ", len(scores[:, j])
             cnt += len(inds)
             cnt1 += len(ind_35)
