@@ -231,6 +231,9 @@ __C.USE_GPU_IN_CAFFE = False
 # Number of images to use, -1 for all
 __C.NUM_IMAGES = -1
 
+# Force to update cache file
+__C.FORCE_UPDATE_CACHE = True
+
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.
     If the directory does not exist, it is created.

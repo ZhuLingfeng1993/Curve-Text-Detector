@@ -10,7 +10,7 @@ import cPickle
 import numpy as np
 
 from shapely.geometry import *
-
+from fast_rcnn.config import cfg
 def parse_rec_txt(filename):
     with open(filename.strip(),'r') as f:
         gts = f.readlines()
@@ -147,7 +147,7 @@ def voc_eval(detpath,
     class_recs = {}
     npos = 0
     for ix, imagename in enumerate(imagenames):
-        R = [obj for obj in recs[imagename] if obj['name'] == classname] # text 
+        R = [obj for obj in recs[imagename] if obj['name'] == classname] # text
         assert(R), 'Can not find any object in '+ classname+' class.'
         bbox = np.array([x['bbox'] for x in R])
         difficult = np.array([x['difficult'] for x in R]).astype(np.bool)
@@ -271,7 +271,23 @@ def voc_eval_polygon(detpath,
     anno_names = [y.strip() for y in anno_lines]
     assert(len(imagenames) == len(anno_names)), 'each image should correspond to one label file'
 
-    if not os.path.isfile(cachefile):
+    use_update = 'u'
+    if os.path.isfile(cachefile):
+        # if not force to update cache file, use interactive mode to deal with it
+        if not cfg.FORCE_UPDATE_CACHE:
+            print 'Cache file already exists: {}'.format(cachefile)
+            use_update = raw_input('If you have not modify anything about test data set, '
+                                   'input \'u\' to update it or press any other key to use '
+                                   'cache.\n'
+                                   'Your input is: ')
+            # interactively chosen not update, then use cache
+            if use_update != 'u':
+                # load
+                with open(cachefile, 'r') as f:
+                    gt_objs_all = cPickle.load(f)
+                print 'test data set annotations loaded from {}'.format(cachefile)
+    # load new annotations or update annotations
+    if use_update == 'u':
         # load annots
         recs = {}
         for i, imagename in enumerate(imagenames):
@@ -293,7 +309,7 @@ def voc_eval_polygon(detpath,
     class_recs = {}
     npos = 0
     for ix, imagename in enumerate(imagenames):
-        R = [obj for obj in recs[imagename] if obj['name'] == classname] # text 
+        R = [obj for obj in recs[imagename] if obj['name'] == classname] # text
         # assert(R), 'Can not find any object in '+ classname+' class.'
         if not R: continue
         bbox = np.array([x['bbox'] for x in R])
@@ -335,7 +351,7 @@ def voc_eval_polygon(detpath,
         #        (det_bbox[14], det_bbox[15]), (det_bbox[16], det_bbox[17]), (det_bbox[18], det_bbox[19]), (det_bbox[20], det_bbox[21]), (det_bbox[22], det_bbox[23]), (det_bbox[24], det_bbox[25]), (det_bbox[26], det_bbox[27]))
         pdet = Polygon(pts)
         # assert(pdet.is_valid), 'polygon has intersection sides.'
-        # if not pdet.is_valid: 
+        # if not pdet.is_valid:
             # print('pdet')
             # continue
 
@@ -344,12 +360,12 @@ def voc_eval_polygon(detpath,
         # print(BBGT)
         gt_bbox = BBGT[:, :4]
         info_bbox_gt = BBGT[:, 4:32]
-        ls_pgt = [] 
+        ls_pgt = []
         overlaps = np.zeros(BBGT.shape[0])
         for iix in xrange(BBGT.shape[0]):
             pts = [(int(gt_bbox[iix, 0]) + info_bbox_gt[iix, j], int(gt_bbox[iix, 1]) + info_bbox_gt[iix, j+1]) for j in xrange(0,28,2)]
             pgt = Polygon(pts)
-            if not pgt.is_valid: 
+            if not pgt.is_valid:
                 print('GT polygon has intersecting sides.')
                 continue
             try:

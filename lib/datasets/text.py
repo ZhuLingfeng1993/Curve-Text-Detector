@@ -144,13 +144,25 @@ class ctw1500(imdb_text):
                 'imagePath' : gt_name}
 
     def _load_roidb(self, labels):
-        cache_file = os.path.join(self.cache_path, self.name+'_gt_roidb.pkl')
+        print 'Loading {} gt roidb...'.format(self.name)
+        cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as fid:
-                roidb =cPickle.load(fid)
-            print '{} gt roidb loaded from {}'.format(self.name, cache_file)
-            return roidb
-
+            use_update = 'u'
+            # if not force to update cache file, use interactive mode to deal with it
+            if not cfg.FORCE_UPDATE_CACHE:
+                print 'Cache file already exists: {}'.format(cache_file)
+                use_update = raw_input('If you have not modify anything about train data set'
+                                   ' or gt roidb, input \'u\' to update it or '
+                                   'press any other key to use cache.\n'
+                                   'Your input is: ')
+            # interactively chosen not update, then use c
+            # interactively not update, use cache
+            if use_update != 'u':
+                with open(cache_file, 'rb') as fid:
+                    roidb = cPickle.load(fid)
+                print '{} gt roidb loaded from {}'.format(self.name, cache_file)
+                return roidb
+        # load new roidb or update roidb
         num = len(labels)
         print 'load sample number = ', num
         gt_roidb = [ self._load_ctw1500_annotation(labels, i) for i in range(num) ]
