@@ -10,6 +10,7 @@ import numpy as np
 import yaml
 from multiprocessing import Process, Queue
 
+
 class RoIDataLayer(caffe.Layer):
     """Fast R-CNN data layer used for training."""
 
@@ -65,11 +66,13 @@ class RoIDataLayer(caffe.Layer):
                                                  self._roidb,
                                                  self._num_classes)
             self._prefetch_process.start()
+
             # Terminate the child process when the parent exists
             def cleanup():
                 print 'Terminating BlobFetcher'
                 self._prefetch_process.terminate()
                 self._prefetch_process.join()
+
             import atexit
             atexit.register(cleanup)
 
@@ -86,7 +89,7 @@ class RoIDataLayer(caffe.Layer):
         # data blob: holds a batch of N images, each with 3 channels
         idx = 0
         top[idx].reshape(cfg.TRAIN.IMS_PER_BATCH, 3,
-            max(cfg.TRAIN.SCALES), cfg.TRAIN.MAX_SIZE)
+                         max(cfg.TRAIN.SCALES), cfg.TRAIN.MAX_SIZE)
         self._name_to_top_map['data'] = idx
         idx += 1
 
@@ -99,15 +102,14 @@ class RoIDataLayer(caffe.Layer):
             self._name_to_top_map['gt_boxes'] = idx
             idx += 1
 
-            ######################################## curve
-            assert(len(top) == 4) , 'Must use gt_info'
-
-            top[idx].reshape(1,4)
+            # curve
+            assert (len(top) == 4), 'Must use gt_info'
+            # it will be reshaped in forward, so the size is not cared
+            top[idx].reshape(1, 4)
             self._name_to_top_map['gt_info'] = idx
             idx += 1
-            ########################################
 
-        else: # not using RPN
+        else:  # not using RPN
             # rois blob: holds R regions of interest, each is a 5-tuple
             # (n, x1, y1, x2, y2) specifying an image batch index n and a
             # rectangle (x1, y1, x2, y2)
@@ -149,11 +151,14 @@ class RoIDataLayer(caffe.Layer):
         for blob_name, blob in blobs.iteritems():
             top_ind = self._name_to_top_map[blob_name]
             shape = blob.shape
+            # reshape blob to 4 dims blob
             if len(shape) == 1:
+                # blobs['im_info']
                 blob = blob.reshape(blob.shape[0], 1, 1, 1)
             if len(shape) == 2 and blob_name != 'im_info':
+                # blobs['gt_boxes']
                 blob = blob.reshape(blob.shape[0], blob.shape[1], 1, 1)
-            top[top_ind].reshape(*(blob.shape))
+            top[top_ind].reshape(*blob.shape)
             # Copy data into net's input blobs
             top[top_ind].data[...] = blob.astype(np.float32, copy=False)
 
@@ -165,8 +170,10 @@ class RoIDataLayer(caffe.Layer):
         """Reshaping happens during the call to forward."""
         pass
 
+
 class BlobFetcher(Process):
     """Experimental class for prefetching blobs in a separate process."""
+
     def __init__(self, queue, roidb, num_classes):
         super(BlobFetcher, self).__init__()
         self._queue = queue
