@@ -1,4 +1,4 @@
-name: "Q_RFCN_With_Ref_ResNet50_train"
+name: "Q_RFCN_TLOC_With_Ref_ResNet50_train"
 layer {
   name: 'input-data'
   type: 'Python'
@@ -31,7 +31,7 @@ layer {
     param {
         lr_mult: 0.0
     }
-    
+
 }
 
 layer {
@@ -3541,7 +3541,7 @@ layer {
      stride: 1
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler { type: "constant" value: 0 }
-  } 
+  }
 }
 layer {
   name: "rpn_relu/3x3"
@@ -3677,7 +3677,7 @@ layer {
   top: 'bbox_inside_weights'
   top: 'bbox_outside_weights'
   top: 'info_targets_fgh' # quadrilateral
-  top: 'info_targets_fgw' 
+  top: 'info_targets_fgw'
   top: 'info_inside_weights_fgh'
   top: 'info_inside_weights_fgw'
   top: 'rois_fg'
@@ -3908,7 +3908,7 @@ layer {
   }
 }
 
-#####  lstm 
+#####  lstm
 layer {
   name: "conv_lstm_h"
   type: "Convert"
@@ -4010,10 +4010,10 @@ layer {
   top: "im2col_transpose2_h"
   type: "Transpose"
   transpose_param {
-    dim: 1 
-    dim: 0 
+    dim: 1
+    dim: 0
     dim: 2
-    dim: 3  
+    dim: 3
   }
 }
 
@@ -4061,7 +4061,7 @@ layer {
   }
 }
 
-##### lstm 
+##### lstm
 layer {
   name: "conv_lstm_w"
   type: "Convert"
@@ -4162,10 +4162,10 @@ layer {
   top: "im2col_transpose2_w"
   type: "Transpose"
   transpose_param {
-    dim: 1 
-    dim: 0 
+    dim: 1
+    dim: 0
     dim: 2
-    dim: 3 
+    dim: 3
   }
 }
 
@@ -4189,7 +4189,7 @@ layer {
    name: "loss"
    type: "SoftmaxWithLoss"
    bottom: "cls_score"
-   bottom: "labels" 
+   bottom: "labels"
    top: "loss_cls"
    loss_weight: 6 # ?
    loss_param {
@@ -4201,10 +4201,11 @@ layer {
 
 layer {
    name: "loss_bbox"
-   type: "SmoothL1LossOHEM"  # we don't use ohem.
+   type: "SmoothL1Loss"
    bottom: "bbox_pred"
    bottom: "bbox_targets"
    bottom: "bbox_inside_weights"
+   bottom: "bbox_outside_weights"
    top: "loss_bbox"
    loss_weight: 1
    loss_param {
@@ -4214,13 +4215,14 @@ layer {
    propagate_down: true
    propagate_down: false
    propagate_down: false
+   propagate_down: false
 }
 
 layer {
    name: "accuarcy"
    type: "Accuracy"
    bottom: "cls_score"
-   bottom: "labels" 
+   bottom: "labels"
    top: "accuarcy"
    accuracy_param {
         ignore_label: -1
@@ -4231,9 +4233,10 @@ layer {
 
 layer{
     name:"loss_info_h"
-    type: "SmoothL1LossOHEM"  # we don't use ohem.
-    bottom: "info_syn_pred_h" 
-    bottom: "info_targets_fgh"  
+    type: "SmoothL1Loss"
+    bottom: "info_syn_pred_h"
+    bottom: "info_targets_fgh"
+    bottom: "info_inside_weights_fgh"
     bottom: "info_inside_weights_fgh"
     top: "info_loss_h"
     loss_weight: 1
@@ -4244,13 +4247,15 @@ layer{
     propagate_down: true
     propagate_down: false
     propagate_down: false
+    propagate_down: false
 }
 
 layer{
     name:"loss_info_w"
-    type: "SmoothL1LossOHEM"  # we don't use ohem.
-    bottom: "info_syn_pred_w" 
-    bottom: "info_targets_fgw"  
+    type: "SmoothL1Loss"
+    bottom: "info_syn_pred_w"
+    bottom: "info_targets_fgw"
+    bottom: "info_inside_weights_fgw"
     bottom: "info_inside_weights_fgw"
     top: "info_loss_w"
     loss_weight: 1
@@ -4261,10 +4266,11 @@ layer{
     propagate_down: true
     propagate_down: false
     propagate_down: false
+    propagate_down: false
 }
 
-layer {
-    name: 'silence'
-    type: 'Silence'
-    bottom: 'bbox_outside_weights'
-}
+#layer {
+    #name: 'silence'
+    #type: 'Silence'
+   # bottom: 'bbox_outside_weights'
+#}

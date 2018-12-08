@@ -3656,7 +3656,7 @@ layer {
   bottom: 'rpn_cls_prob_reshape'
   bottom: 'rpn_bbox_pred'
   bottom: 'im_info'
-  top: 'rpn_rois'
+top: 'rpn_rois'
 #  top: 'rpn_scores'
   python_param {
     module: 'rpn.proposal_layer'

@@ -261,10 +261,10 @@ def syn_vis_detections_opencv(im, class_name, dets, out_filename, thresh=0.3, ):
                 #     cv2.line(im,(int(bbox[0]) - int(pts[p%28]), int(bbox[1]) - int(pts[(p+1)%28])),
                 #              (int(bbox[0]) - int(pts[(p+2)%28]), int(bbox[1]) - int(pts[(p+3)%28])),(0,0,255),2)
                 # else:
-                cv2.line(im, (int(bbox[0]) + int(pts[p % 2*cfg.NUM_QUA_POINTS]),
-                         int(bbox[1]) + int(pts[(p + 1) % 2*cfg.NUM_QUA_POINTS])),
-                         (int(bbox[0]) + int(pts[(p + 2) % 2*cfg.NUM_QUA_POINTS]),
-                         int(bbox[1]) + int(pts[(p + 3) % 2*cfg.NUM_QUA_POINTS])),
+                cv2.line(im, (int(bbox[0]) + int(pts[p % (2*cfg.NUM_QUA_POINTS)]),
+                         int(bbox[1]) + int(pts[(p + 1) % (2*cfg.NUM_QUA_POINTS)])),
+                         (int(bbox[0]) + int(pts[(p + 2) % (2*cfg.NUM_QUA_POINTS)]),
+                         int(bbox[1]) + int(pts[(p + 3) % (2*cfg.NUM_QUA_POINTS)])),
                          (0, 0, 255), 2)
 
 
