@@ -85,7 +85,7 @@ __C.TRAIN.BBOX_NORMALIZE_TARGETS = True
 __C.NUM_QUA_POINTS = 4
 
 # Number of ref points
-__C.NUM_REF_POINTS = 2
+__C.NUM_REF_POINTS = 0
 
 # Deprecated (inside weights)
 __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
