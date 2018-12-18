@@ -81,12 +81,6 @@ __C.TRAIN.USE_PREFETCH = False
 # Normalize the targets (subtract empirical mean, divide by empirical stddev)
 __C.TRAIN.BBOX_NORMALIZE_TARGETS = True
 
-# Number of quadrilateral points
-__C.NUM_QUA_POINTS = 4
-
-# Number of ref points
-__C.NUM_REF_POINTS = 0
-
 # Deprecated (inside weights)
 __C.TRAIN.BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 
@@ -256,6 +250,12 @@ __C.FORCE_UPDATE_CACHE = True
 
 # Visualize data set
 __C.VIS_DATASET = False
+
+# Number of quadrilateral points
+__C.NUM_QUA_POINTS = 4
+
+# Number of ref points
+__C.NUM_REF_POINTS = 0
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.

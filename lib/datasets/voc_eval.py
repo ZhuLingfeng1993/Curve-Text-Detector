@@ -13,6 +13,7 @@ from fast_rcnn.config import cfg
 
 from shapely.geometry import *
 
+DEBUG = True
 
 def parse_rec_txt(filename):
     with open(filename.strip(), 'r') as f:
@@ -300,13 +301,29 @@ def voc_eval_polygon(detpath,
     [ovthresh]: Overlap threshold (default = 0.5)
     [use_07_metric]: Whether to use VOC07's 11 point AP computation
         (default False)
+
+    Steps:
+        load gt
+        extract gt objects for this class
+        read dets
+        sort detections by confidence
+        # go down dets and mark TPs and FPs
+        for each det in sorted order:
+            calculate overlaps with all gt in corresponding image
+            calculate max overlap over all gts in corresponding image
+            if max overlap > threshold:
+                mark this det as TP
+            else:
+                mark this det as FP
+        compute precision and recall(vectors by cumsum)
+        compute AP
     """
     # assumes detections are in detpath.format(classname)
     # assumes annotations are in annopath.format(imagename)
     # assumes imagesetfile is a text file with each line an image name
     # cachedir caches the annotations in a pickle file
 
-    # first load gt
+    # ########### first load gt ###########
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
     cachefile = os.path.join(cachedir, 'annots.pkl')
@@ -339,10 +356,10 @@ def voc_eval_polygon(detpath,
         # load annots
         gt_objs_all = {}
         for i, imagename in enumerate(imagenames):
-            print(anno_names[i].strip())
             # gt_objs_all[imagename] = curve_parse_rec_txt(anno_names[i])
             # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
             anno_names[i] = os.path.join(cfg.DATA_DIR, anno_names[i])
+            print(anno_names[i].strip())
             gt_objs_all[imagename] = qua_parse_rec_txt(anno_names[i])
 
             if i % 100 == 0:
@@ -353,24 +370,25 @@ def voc_eval_polygon(detpath,
         with open(cachefile, 'w') as f:
             cPickle.dump(gt_objs_all, f)
 
-    # extract gt objects for this class
+    # ########### extract gt objects for this class ###########
     class_gt_objs = {}
-    npos = 0
+    # number of not difficlut objects
+    num_obj_not_diff = 0
     for ix, imagename in enumerate(imagenames):
-        gt_objs_one_image = [obj for obj in gt_objs_all[imagename] if obj['name'] == classname]  # text
-        # assert(gt_objs_one_image), 'Can not find any object in '+ classname+' class.'
-        if not gt_objs_one_image: continue
-        bbox = np.array([x['bbox'] for x in gt_objs_one_image])
-        difficult = np.array([x['difficult'] for x in gt_objs_one_image]).astype(np.bool)
-        det = [False] * len(gt_objs_one_image)
-        npos = npos + sum(~difficult)
-        # npos = npos
+        cls_gt_objs_one_img = [obj for obj in gt_objs_all[imagename] if obj['name'] == classname]  # text
+        # assert(cls_gt_objs_one_img), 'Can not find any object in '+ classname+' class.'
+        if not cls_gt_objs_one_img: continue
+        bbox = np.array([x['bbox'] for x in cls_gt_objs_one_img])
+        difficult = np.array([x['difficult'] for x in cls_gt_objs_one_img]).astype(np.bool)
+        det = [False] * len(cls_gt_objs_one_img)
+        num_obj_not_diff = num_obj_not_diff + sum(~difficult)
+        # num_obj_not_diff = num_obj_not_diff
         # class_gt_objs[imagename] = {'bbox': bbox,
         #                          'det': det}
         # index class
         class_gt_objs[str(ix)] = {'bbox': bbox,
-                               'det': det}
-    # read dets(in absolute coordinates)
+                                  'det': det}
+    # ########### read dets(in absolute coordinates) ###########
     detfile = detpath.format(classname)
     with open(detfile, 'r') as f:
         # (ind  score  x1  y1  x2  y2  x3  y3  x4  y4)
@@ -382,20 +400,22 @@ def voc_eval_polygon(detpath,
     # (x1  y1  x2  y2  x3  y3  x4  y4)
     det_lines_polygon = np.array([[float(z) for z in x[2:]] for x in det_splitlines])
 
-    # sort by det_lines_conf
+    # ########### sort all dets by det_lines_conf ###########
+    # with '-', sort from large to small
     sorted_ind = np.argsort(-det_lines_conf)
     sorted_scores = np.sort(-det_lines_conf)
-    det_lines_polygon = det_lines_polygon[sorted_ind, :]
-    det_lines_img_id = [det_lines_img_id[x] for x in sorted_ind]
+    det_lines_polygon_sorted = det_lines_polygon[sorted_ind, :]
+    det_lines_img_id_sorted = [det_lines_img_id[x] for x in sorted_ind]
 
-    # go down dets and mark TPs and FPs
-    num_images = len(det_lines_img_id)
-    tp = np.zeros(num_images)
-    fp = np.zeros(num_images)
-    for image_ind in range(num_images):
-        class_gt_objs_one_image = class_gt_objs[det_lines_img_id[image_ind]]
+    # ########### go down dets and mark TPs and FPs in sorted order ###########
+    num_dets = len(det_lines_img_id_sorted)
+    tp = np.zeros(num_dets)
+    fp = np.zeros(num_dets)
+    # for each det in sorted order
+    for det_ind in range(num_dets):
+        class_gt_objs_one_image = class_gt_objs[det_lines_img_id_sorted[det_ind]]
         # (x1  y1  x2  y2  x3  y3  x4  y4)
-        det_polygon_one_img = det_lines_polygon[image_ind, :].astype(float)
+        det_polygon_one_img = det_lines_polygon_sorted[det_ind, :].astype(float)
         # (x1  y1  x2  y2  x3  y3  x4  y4)
         det_polygon_pts = det_polygon_one_img[:2 * cfg.NUM_QUA_POINTS]
         pts = tuple([(det_polygon_pts[i], det_polygon_pts[i + 1]) for i in range(0, 2 * cfg.NUM_QUA_POINTS, 2)])
@@ -416,11 +436,13 @@ def voc_eval_polygon(detpath,
         # (x1  y1  x2  y2  x3  y3  x4  y4))
         gt_polygon_pts = gt_bbox_polygon_one_img[:, 4: 4 + 2 * cfg.NUM_QUA_POINTS]
         ls_pgt = []
-        # overlaps with all gt in one image
+        # calculate overlaps with all gt in corresponding image
         overlaps = np.zeros(gt_bbox_polygon_one_img.shape[0])
-        for iix in xrange(gt_bbox_polygon_one_img.shape[0]):
-            pts = [(int(gt_bbox[iix, 0]) + gt_polygon_pts[iix, j],
-                    int(gt_bbox[iix, 1]) + gt_polygon_pts[iix, j + 1])
+        # for each gt polygon in one image
+        for polygon_ind in xrange(gt_bbox_polygon_one_img.shape[0]):
+            # transform polygon points to absolute coordinates
+            pts = [(int(gt_bbox[polygon_ind, 0]) + gt_polygon_pts[polygon_ind, j],
+                    int(gt_bbox[polygon_ind, 1]) + gt_polygon_pts[polygon_ind, j + 1])
                    for j in xrange(0, 2 * cfg.NUM_QUA_POINTS, 2)]
             gt_polygon = Polygon(pts)
             if not gt_polygon.is_valid:
@@ -434,30 +456,73 @@ def voc_eval_polygon(detpath,
             assert (sec.is_valid), 'polygon has intersection sides.'
             inters = sec.area
             uni = gt_polygon.area + det_polygon.area - inters
-            overlaps[iix] = inters * 1.0 / uni
+            overlaps[polygon_ind] = inters * 1.0 / uni
             # ls_overlaps.append(inters*1.0 / uni)
-
+        # calculate max overlap over all gts in corresponding image
         ovmax = np.max(overlaps)
         jmax = np.argmax(overlaps)
-
         if ovmax > ovthresh:
             # if not class_gt_objs_one_image['difficult'][jmax]:
             if not class_gt_objs_one_image['det'][jmax]:
-                tp[image_ind] = 1.
+                tp[det_ind] = 1.
                 class_gt_objs_one_image['det'][jmax] = 1
             else:
-                fp[image_ind] = 1.
+                fp[det_ind] = 1.
         else:
-            fp[image_ind] = 1.
+            fp[det_ind] = 1.
 
-    # compute precision recall
+    # ########### compute precision and recall ###########
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
-    rec = tp / float(npos)
+    rec = tp / float(num_obj_not_diff)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     ap = voc_ap(rec, prec, use_07_metric)
-    # print(rec, prec, ap)
-    # yldebug = input('yldebug')
+    if DEBUG:
+        print('fp={}'.format(fp))
+        print('tp={}'.format(tp))
+        print 'num_obj_not_diff={}'.format(num_obj_not_diff)
+        print(rec, prec, ap)
+        # yldebug = input('yldebug')
     return rec, prec, ap
+
+
+if __name__ == '__main__':
+    detpath = '../../temp_dir/dets.txt'
+    def qua_write_voc_results_file():
+        print 'Writing {} VOC results file'.format('text')
+
+        index = 0
+        dets = np.array([
+           922, 255, 954, 255, 956, 277, 936, 277,
+           172, 323, 195, 324, 195, 339, 177, 339,
+           83, 270, 118, 271, 115, 294, 88, 291,
+           940, 310, 962, 310, 962, 320, 940, 320,
+           946, 356, 976, 351, 978, 368, 950, 374,
+           940, 322, 962, 322, 964, 333, 943, 334,
+           128, 344, 210, 342, 206, 361, 128, 362,
+           312, 303, 360, 303, 360, 312, 312, 312,
+        ])
+        dets = dets.reshape(-1, 8)
+        score = 0.6
+        with open(detpath, 'wt') as f:
+            for k in xrange(dets.shape[0]):
+                # (ind  score  x1  y1  x2  y2  x3  y3  x4  y4)
+                f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
+                        format(str(index), score,
+                               dets[k, 0],
+                               dets[k, 1], dets[k, 2],
+                               dets[k, 3], dets[k, 4],
+                               dets[k, 5], dets[k, 6],
+                               dets[k, 7]))
+    qua_write_voc_results_file()
+    label_list_file = '../../data/icdar2015ch4/Challenge4_Test_Task1_GT.txt'
+    image_list_file = '../../data/icdar2015ch4/ch4_test_images.txt'
+    cls = 'text'
+    cachedir = 'temp_dir'
+    use_07_metric = True
+    rec, prec, ap = voc_eval_polygon(
+        detpath, label_list_file, image_list_file,
+        cls, cachedir, ovthresh=0.5, use_07_metric=use_07_metric)
+    print(rec, prec, ap)

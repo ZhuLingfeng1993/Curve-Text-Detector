@@ -347,7 +347,7 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
         # Save detections
         # Evaluating detections
             self._qua_write_voc_results_file(all_boxes)
-            self._do_python_eval(output_dir)
+            self._do_python_polygon_eval(output_dir)
     """
     num_images = len(imdb._image_index)
     # all detections are collected into:
@@ -410,6 +410,7 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
             cls_scores = scores[inds, j]
 
             if cfg.TEST.AGNOSTIC:
+                # 0:4 part is for background: history problem
                 cls_boxes = boxes[inds, 4:8]
                 ## SYN
                 cls_infos_h = infos_h[inds, :cfg.NUM_QUA_POINTS]
@@ -475,10 +476,17 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
             .format(i + 1, num_images, _t['im_detect'].average_time,
                     _t['misc'].average_time)
     # Save detections
-    det_file = os.path.join(output_dir, 'detections.pkl')
+    det_file = os.path.join(output_dir, 'bbox_detections.pkl')
+    with open(det_file, 'wb') as f:
+        cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
+    det_file = os.path.join(output_dir, 'polygon_detections.pkl')
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes_info, f, cPickle.HIGHEST_PROTOCOL)
     # Evaluating detections
-    print 'Evaluating detections'
-    imdb.evaluate_detections(all_boxes_info, output_dir)
-    print "avg proposals>0.5:  ", cnt / num_images, " 0.3--0.5:  ", cnt1 / num_images, "all:  ", cnt2 / num_images
+    # print 'Evaluating detections'
+    # imdb.evaluate_detections(all_boxes, output_dir)
+    print 'Evaluating polygon detections'
+    imdb.evaluate_polygon_detections(all_boxes_info, output_dir)
+    print "avg proposals>0.5:  ", cnt / num_images, " 0.3--0.5:  ",\
+        cnt1 / num_images, "all:  ", cnt2 / num_images
+

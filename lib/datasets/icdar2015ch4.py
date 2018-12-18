@@ -64,7 +64,8 @@ class icdar2015ch4(imdb_text):
         self._comp_id = 'comp4'
 
         # PASCAL specific config options
-        self.config = {'use_salt': True,
+        self.config = {'cleanup': True,
+                       'use_salt': True,
                        'use_diff': False,
                        'matlab_eval': False,
                        'rpn_file': None,
@@ -115,7 +116,7 @@ class icdar2015ch4(imdb_text):
                 label['imagePath'] = os.path.join(cfg.DATA_DIR, imgs_path[ix].strip())
                 img = Image.open(label['imagePath'])
 
-                with open(label_file, 'r') as f:
+                with open(label_file, 'r', ) as f:
                     # rm utf8 info
                     line_boxes = []
                     for line in f.readlines():
@@ -327,7 +328,7 @@ class icdar2015ch4(imdb_text):
 
                     #########################call voc_eval to evaluate the rec and prec ,mAP
 
-    def _do_python_eval(self, output_dir='output'):
+    def _do_python_polygon_eval(self, output_dir='output'):
         cachedir = os.path.join(self.output_dir)
         aps = []
         # The PASCAL VOC metric changed in 2010
@@ -371,11 +372,11 @@ class icdar2015ch4(imdb_text):
         # print('{:.3f}'.format(np.mean(aps)))
         print('~~~~~~~~')
 
-    def evaluate_detections(self, all_boxes, output_dir):
+    def evaluate_polygon_detections(self, all_boxes, output_dir):
         self.output_dir = output_dir
         # self._curve_write_voc_results_file(all_boxes)
         self._qua_write_voc_results_file(all_boxes)
-        self._do_python_eval(output_dir)
+        self._do_python_polygon_eval(output_dir)
 
     def competition_mode(self, on):
         if on:
@@ -383,4 +384,4 @@ class icdar2015ch4(imdb_text):
         else:
             self.config['use_salt'] = True
 
-        
+

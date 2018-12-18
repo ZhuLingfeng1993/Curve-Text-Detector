@@ -63,12 +63,19 @@ def bbox_transform_inv(boxes, deltas):
     return pred_boxes
 
 def qua_transform(ex_rois, gt_info):
+    """
+
+    :param ex_rois: R Regions with left top and right bottom coordinates: (x1, y1, x2, y2)
+    :param gt_info: quadrilateral points (x1, y1, x2, y2, x3, y3, x4, y4)
+    :return:
+    """
     ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
     ex_heights = ex_rois[:, 3] - ex_rois[:, 1] + 1.0
     # ex_ctr_x = ex_rois[:, 0] + 0.5 * ex_widths
     # ex_ctr_y = ex_rois[:, 1] + 0.5 * ex_heights
 
     assert gt_info.shape[1] == 8, 'length does not match gt_info'
+    # four points of rois
     ex_p1w = ex_rois[:, 0]
     ex_p2w = ex_rois[:, 2]
     ex_p3w = ex_rois[:, 2]
