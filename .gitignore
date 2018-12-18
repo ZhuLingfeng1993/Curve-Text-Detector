@@ -1,3 +1,10 @@
+#
+results/test_result.txt
+gen_job.py
+lib/datasets/temp_dir/
+loss.log
+testPolygon.py
+
 #Python
 *.pyc
 
