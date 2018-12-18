@@ -1,3 +1,6 @@
+#
+gen_job.py
+lib/datasets/temp_dir
 #Python
 *.pyc
 
