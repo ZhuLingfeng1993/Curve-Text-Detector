@@ -390,7 +390,7 @@ def test_net(net, imdb, max_per_image=400, thresh=-np.inf, vis=False):
         scores, boxes, infos_h, infos_w = im_detect(net, im, box_proposals, info=True)
         _t['im_detect'].toc()
         _t['misc'].tic()
-
+        # skip j = 0, because it's the background class
         for j in xrange(1, imdb.num_classes):
             assert (scores.shape[0] == infos_h.shape[0] == infos_w.shape[0]), 'length mismatch'
             # keep boxes with score > threshold

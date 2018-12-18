@@ -153,13 +153,21 @@ def voc_eval(detpath,
     [ovthresh]: Overlap threshold (default = 0.5)
     [use_07_metric]: Whether to use VOC07's 11 point AP computation
         (default False)
+
+    Steps:
+        load gt
+        extract gt objects for this class
+        read dets
+        sort detections by confidence
+        go down dets and mark TPs and FPs
+        compute precision and recall
     """
     # assumes detections are in detpath.format(classname)
     # assumes annotations are in annopath.format(imagename)
     # assumes imagesetfile is a text file with each line an image name
     # cachedir caches the annotations in a pickle file
 
-    # first load gt
+    # ########### first load gt ###########
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
     cachefile = os.path.join(cachedir, 'annots.pkl')
@@ -190,7 +198,7 @@ def voc_eval(detpath,
             recs = cPickle.load(f)
 
     # assert(0), recs     
-    # extract gt objects for this class
+    # ########### extract gt objects for this class ###########
     class_recs = {}
     npos = 0
     for ix, imagename in enumerate(imagenames):
@@ -207,7 +215,7 @@ def voc_eval(detpath,
         class_recs[str(ix)] = {'bbox': bbox,
                                'det': det}
     # assert(0), class_recs 
-    # read dets
+    # ########### read dets ###########
     detfile = detpath.format(classname)
     with open(detfile, 'r') as f:
         lines = f.readlines()
@@ -217,16 +225,18 @@ def voc_eval(detpath,
     confidence = np.array([float(x[1]) for x in splitlines])
     BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
 
-    # sort by confidence
+    # ########### sort detections by confidence ###########
+    # with '-', sort from large to small
     sorted_ind = np.argsort(-confidence)
     sorted_scores = np.sort(-confidence)
     BB = BB[sorted_ind, :]
     image_ids = [image_ids[x] for x in sorted_ind]
 
-    # go down dets and mark TPs and FPs
+    # ########### go down dets and mark TPs and FPs ###########
     nd = len(image_ids)
     tp = np.zeros(nd)
     fp = np.zeros(nd)
+    # in each image
     for d in range(nd):
         R = class_recs[image_ids[d]]
         bb = BB[d, :].astype(float)
@@ -247,7 +257,7 @@ def voc_eval(detpath,
             uni = ((bb[2] - bb[0] + 1.) * (bb[3] - bb[1] + 1.) +
                    (BBGT[:, 2] - BBGT[:, 0] + 1.) *
                    (BBGT[:, 3] - BBGT[:, 1] + 1.) - inters)
-
+            # IoU
             overlaps = inters / uni
             ovmax = np.max(overlaps)
             jmax = np.argmax(overlaps)
@@ -262,7 +272,7 @@ def voc_eval(detpath,
         else:
             fp[d] = 1.
 
-    # compute precision recall
+    # ########### compute precision and recall ###########
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
     rec = tp / float(npos)

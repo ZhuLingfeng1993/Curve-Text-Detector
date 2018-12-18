@@ -40,7 +40,7 @@ def bbox_transform_inv(boxes, deltas):
     ctr_x = boxes[:, 0] + 0.5 * widths
     ctr_y = boxes[:, 1] + 0.5 * heights
 
-    dx = deltas[:, 0::4]
+    dx = deltas[:, 0::4] # [:, start=i : end=-1: step=4]
     dy = deltas[:, 1::4]
     dw = deltas[:, 2::4]
     dh = deltas[:, 3::4]
