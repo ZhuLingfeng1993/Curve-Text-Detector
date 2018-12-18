@@ -17,11 +17,12 @@ from fast_rcnn.config import cfg
 from PIL import Image
 from shapely.geometry import Polygon
 from shapely.geometry import Point
+import codecs
 
-
-def vis_data(boxes, polygons, image_path, rel_polygon=True):
+def vis_data(boxes, polygons, image_path, rel_polygon=True, show_order=False):
     """
     Visualize data by showing one image and label.
+    :param show_order:
     :param boxes:
     :param polygons:
     :param image_path:
@@ -49,9 +50,11 @@ def vis_data(boxes, polygons, image_path, rel_polygon=True):
             p1 = (int(polygon[j % n_coors]),int(polygon[(j + 1) % n_coors]))
             p2 = (int(polygon[(j + 2) % n_coors]), int(polygon[(j + 3) % n_coors]))
             cv2.line(img, p1, p2, (0, 0, 255), 2)
+            if show_order:
+                cv2.putText(img, str(j/2+1), p1, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
     imk = cv2.resize(img, (1280, 720))  # visualization
     cv2.imshow('data visulization.', imk)
-    cv2.waitKey(2000)
+    cv2.waitKey()
 
 class icdar2015ch4(imdb_text):
     def __init__(self, dataset):
@@ -116,17 +119,8 @@ class icdar2015ch4(imdb_text):
                 label['imagePath'] = os.path.join(cfg.DATA_DIR, imgs_path[ix].strip())
                 img = Image.open(label['imagePath'])
 
-                with open(label_file, 'r', ) as f:
-                    # rm utf8 info
-                    line_boxes = []
-                    for line in f.readlines():
-                        if '\xef\xbb\xbf' in line:
-                            # 用replace替换掉'\xef\xbb\xbf'
-                            str1 = line.replace('\xef\xbb\xbf', '')
-                            # strip()去掉\n
-                            line_boxes.append(str1.strip())
-                        else:
-                            line_boxes.append(line.strip())
+                with codecs.open(label_file, 'r', encoding='utf_8_sig') as f:
+                    line_boxes = f.readlines()
                     num_boxes = len(line_boxes)
                     # quadrilateral points: (x1, y1, x2, y2, x3, y3, x4, y4)
                     gt_info = np.zeros((num_boxes, 8), np.float32)  # syn
@@ -155,7 +149,7 @@ class icdar2015ch4(imdb_text):
 
                 # vis image and label
                 if cfg.VIS_DATASET:
-                    vis_data(boxes, gt_info_rel, label['imagePath'], rel_polygon=True)
+                    vis_data(boxes, gt_info_rel, label['imagePath'], rel_polygon=True, show_order=True)
 
                 labels.append(label)
         print "\nload images number = {}\n".format(len(labels))
