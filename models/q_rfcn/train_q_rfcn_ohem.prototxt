@@ -4015,8 +4015,8 @@ layer {
 }
 
 
-#layer {
-    #name: 'silence'
-    #type: 'Silence'
-   # bottom: 'bbox_outside_weights'
-#}
+layer {
+    name: 'silence'
+    type: 'Silence'
+    bottom: 'bbox_outside_weights'
+}
