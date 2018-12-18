@@ -489,7 +489,7 @@ def voc_eval_polygon(detpath,
 
 
 if __name__ == '__main__':
-    detpath = '../../temp_dir/dets.txt'
+    detpath = 'temp_dir/dets.txt'
     def qua_write_voc_results_file():
         print 'Writing {} VOC results file'.format('text')
 
@@ -521,6 +521,8 @@ if __name__ == '__main__':
     image_list_file = '../../data/icdar2015ch4/ch4_test_images.txt'
     cls = 'text'
     cachedir = 'temp_dir'
+    # if not os.path.exists(cachedir):
+    #     os.mkdir(cachedir)
     use_07_metric = True
     rec, prec, ap = voc_eval_polygon(
         detpath, label_list_file, image_list_file,
