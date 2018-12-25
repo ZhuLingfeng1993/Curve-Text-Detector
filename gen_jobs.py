@@ -22,15 +22,22 @@ HOMEDIR = os.path.expanduser("~")
 # ####### Switch definition #########
 switches = EasyDict()
 # override existing directory
-switches.override = True
-# check net in cpu only mode
-switches.check_net = False
-if HOMEDIR == "/home/zhulingfeng":
-    switches.check_net = True
+switches.override = False
+# check net
+switches.check_net = True
+
+switches.use_gpu = True
 
 switches.use_pretrain_model = True
 
 switches.run_soon = True
+# On my own computer, only use cpu to check net
+if HOMEDIR == "/home/zhulingfeng":
+    switches.check_net = True
+    switches.use_gpu = False
+# Not caring of override in check net
+if switches.check_net:
+    switches.override = True
 
 # ##### extra solver param in train/test script #####
 params = EasyDict()
@@ -43,12 +50,12 @@ if switches.check_net:
 names = EasyDict()
 # job name
 #
-# to simplify model definition
+# to avoid duplicated model definition
 names.job_w_o_flag = "q_rfcn"
 # actual job name
 names.job = names.job_w_o_flag
 if switches.check_net:
-    names.job += "_cpu"
+    names.job = "check_net_" + names.job
 
 names.basenet = "ResNet50"  # "VGGNet"#"MobileNetMove4"#
 # dataset name
@@ -253,8 +260,8 @@ def cfg_gen():
         f.write("EXP_DIR: {}\n".format(names.job))
         f.write("NUM_IMAGES: {}\n".format(
             -1 if not switches.check_net else 2))
-        f.write("USE_GPU_NMS: {}\n".format(not switches.check_net))
-        f.write("USE_GPU_IN_CAFFE: {}\n".format(not switches.check_net))
+        f.write("USE_GPU_NMS: {}\n".format(switches.use_gpu))
+        f.write("USE_GPU_IN_CAFFE: {}\n".format(switches.use_gpu))
         f.write("TRAIN:\n"
                 "  HAS_RPN: True\n"
                 "  IMS_PER_BATCH: 1\n"
