@@ -1,4 +1,4 @@
-train_net: "models/icdar2015ch4/ResNet50/q_rfcn/train_q_rfcn_cpu.prototxt"
+train_net: "models/icdar2015ch4/ResNet50/q_rfcn/train_check_net_q_rfcn.prototxt"
 base_lr: 0.0010000000475
 display: 1
 lr_policy: "step"
@@ -7,7 +7,7 @@ momentum: 0.899999976158
 weight_decay: 0.000500000023749
 stepsize: 40000
 snapshot: 0
-snapshot_prefix: "ResNet50_q_rfcn_cpu_icdar2015ch4"
+snapshot_prefix: "ResNet50_check_net_q_rfcn_icdar2015ch4"
 clip_gradients: 20.0
 iter_size: 1
 
