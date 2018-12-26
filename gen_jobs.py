@@ -122,8 +122,10 @@ def make_if_not_exist(path):
         os.makedirs(path)
 
 
-def check_if_exist(path):
-    return os.path.exists(path)
+def check_isfile(file_path):
+    if not os.path.isfile(file_path):
+        print("File not exits: {}".format(file_path))
+        exit(1)
 
 
 def check_and_choose(path):
@@ -142,10 +144,10 @@ check_and_choose(dirs.model_def)
 check_and_choose(dirs.job)
 check_and_choose(dirs.log)
 
-check_if_exist(files.train_net)
-check_if_exist(files.test_net)
+check_isfile(files.train_net)
+check_isfile(files.test_net)
 if pretrain_model is not None:
-    check_if_exist(pretrain_model)
+    check_isfile(pretrain_model)
 
 
 # ############# File Generation ###############
