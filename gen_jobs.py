@@ -39,12 +39,13 @@ if HOMEDIR == "/home/zhulingfeng":
 if switches.check_net:
     switches.override = True
 
-# ##### extra solver param in train/test script #####
+# ##### extra param of solving #####
 params = EasyDict()
 params.gpu_id = 0
-params.iters = 10000
+params.max_iter = 70000
+params.snapshot = 10000
 if switches.check_net:
-    params.iters = 1
+    params.max_iter = 1
 
 # ############ Name definition ############
 names = EasyDict()
@@ -170,7 +171,7 @@ def train_script_gen():
         f.write("  --gpu {} \\\n".format(params.gpu_id))
         f.write("  --solver {} \\\n".format(files.solver))
         f.write("  --weights {} \\\n".format(pretrain_model))
-        f.write("  --iters {} \\\n".format(params.iters))
+        f.write("  --iters {} \\\n".format(params.max_iter))
         f.write("  --imdb {} \\\n".format(names.train_dataset))
         f.write("  --cfg {} \\\n".format(files.cfg))
 
@@ -204,7 +205,7 @@ def test_script_gen():
                 "echo Logging output to \"$LOG\"\n"
                 "\n")
         f.write("time ./tools/test_net.py \\\n")
-        f.write("  --net {}/{}_iter_{}.caffemodel \\\n".format(dirs.snapshot, snapshot_prefix, params.iters))
+        f.write("  --net {}/{}_iter_{}.caffemodel \\\n".format(dirs.snapshot, snapshot_prefix, params.max_iter))
         f.write("  --gpu {} \\\n".format(params.gpu_id))
         f.write("  --imdb {} \\\n".format(names.test_dataset))
         f.write("  --def {} \\\n".format(files.test_net))
@@ -273,10 +274,10 @@ def cfg_gen():
                 "  PROPOSAL_METHOD: gt\n"
                 "  BG_THRESH_LO: 0.0\n"
                 "  BATCH_SIZE: -1\n"
-                "  AGNOSTIC: True\n"
-                "  SNAPSHOT_ITERS: 10000 #3\n"
-                "  RPN_PRE_NMS_TOP_N: 5000 #120\n"
-                "  RPN_POST_NMS_TOP_N: 300 #30\n"
+                "  AGNOSTIC: True\n")
+        f.write("  SNAPSHOT_ITERS: {} \n".format(params.snapshot))
+        f.write("  RPN_PRE_NMS_TOP_N: 6000 \n"
+                "  RPN_POST_NMS_TOP_N: 300 \n"
                 "  USE_FLIPPED: False\n"
                 "TEST:\n"
                 "  HAS_RPN: True\n"
