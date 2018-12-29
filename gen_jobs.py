@@ -22,6 +22,8 @@ HOMEDIR = os.path.expanduser("~")
 # ####### Switch definition #########
 switches = EasyDict()
 # override existing directory
+
+
 switches.override = False
 # check net
 switches.check_net = True
@@ -60,7 +62,7 @@ if switches.check_net:
 
 names.basenet = "ResNet50"  # "VGGNet"#"MobileNetMove4"#
 # dataset name
-names.dataset = "icdar2015ch4"
+names.dataset = "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset"  # "icdar2015ch4"   #
 # train dataset name
 names.train_dataset = names.dataset + "_train"  # "VOC2007"#
 #  test dataset name
@@ -174,9 +176,13 @@ def train_script_gen():
         f.write("  --iters {} \\\n".format(params.max_iter))
         f.write("  --imdb {} \\\n".format(names.train_dataset))
         f.write("  --cfg {} \\\n".format(files.cfg))
-
-        f.write("  --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt \\\n"
+        if names.dataset == 'icdar2015ch4':
+            f.write("  --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt \\\n"
                 "  --train_image_list data/icdar2015ch4/ch4_training_images.txt \n\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
+            f.write("  --train_label_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/train.txt \\\n"
+                "  --train_image_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/train.txt \n\n")
+        f.write("\n")
         # test part
         f.write("set +x\n"
                 "NET_FINAL=`grep -B 1 \"done solving\" ${LOG} | "
@@ -189,8 +195,13 @@ def train_script_gen():
         f.write("  --imdb {} \\\n".format(names.test_dataset))
         f.write("  --def {} \\\n".format(files.test_net))
         f.write("  --cfg {} \\\n".format(files.cfg))
-        f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
-                "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n")
+
+        if names.dataset == 'icdar2015ch4':
+            f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
+                    "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
+            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
+                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \n\n")
 
 
 def test_script_gen():
@@ -210,9 +221,13 @@ def test_script_gen():
         f.write("  --imdb {} \\\n".format(names.test_dataset))
         f.write("  --def {} \\\n".format(files.test_net))
         f.write("  --cfg {} \\\n".format(files.cfg))
-        f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
-                "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n"
-                "  #--vis")
+        if names.dataset == 'icdar2015ch4':
+            f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
+                    "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
+            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
+                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n")
+        f.write("  #--vis")
 
 
 def solver_param_def():
@@ -231,7 +246,7 @@ def solver_param_def():
         'snapshot': 0,
         # We still use the snapshot prefix, though
         'snapshot_prefix': snapshot_prefix,
-        'clip_gradients': 20,
+        # 'clip_gradients': 20,
         'iter_size': 1,
         # 'debug_info': true,
     }
@@ -265,6 +280,7 @@ def cfg_gen():
             -1 if not switches.check_net else 2))
         f.write("USE_GPU_NMS: {}\n".format(switches.use_gpu))
         f.write("USE_GPU_IN_CAFFE: {}\n".format(switches.use_gpu))
+        f.write("VIS_DATASET: False\n")
         f.write("TRAIN:\n"
                 "  HAS_RPN: True\n"
                 "  IMS_PER_BATCH: 1\n"
