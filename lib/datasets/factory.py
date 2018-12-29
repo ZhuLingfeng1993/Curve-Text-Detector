@@ -11,7 +11,7 @@ __sets = {}
 
 from datasets.ctw1500 import ctw1500
 from datasets.icdar2015ch4 import icdar2015ch4
-
+from datasets.labelme_qua_data import labelme_qua_data
 
 # # Set up ctw1500_<split>
 # for split in ['train', 'test']:
@@ -32,7 +32,8 @@ from datasets.icdar2015ch4 import icdar2015ch4
 
 
 def get_imdb(dataset):
-    imdb = icdar2015ch4(dataset)
+    # imdb = icdar2015ch4(dataset)
+    imdb = labelme_qua_data(dataset)
     return imdb
 
 def list_imdbs():
