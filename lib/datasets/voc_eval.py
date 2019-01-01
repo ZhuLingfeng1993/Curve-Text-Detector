@@ -638,6 +638,9 @@ def voc_eval_polygon(detpath,
             if i % 100 == 0:
                 print 'Reading annotation for {:d}/{:d}'.format(
                     i + 1, len(imagenames))
+        # temporarily fix bug of 'inds = np.reshape(inds, (-1, 2))' in _shuffle_roidb_inds
+        if len(gt_objs_all) % 2 != 0:
+            gt_objs_all.pop(-1)
         # save
         print 'Saving cached annotations to {:s}'.format(cachefile)
         with open(cachefile, 'w') as f:

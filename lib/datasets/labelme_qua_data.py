@@ -188,7 +188,11 @@ class labelme_qua_data(imdb_text):
                     vis_data(boxes, gt_info_rel, label['imagePath'], rel_polygon=True, show_order=True)
 
                 labels.append(label)
+        # temporarily fix bug of 'inds = np.reshape(inds, (-1, 2))' in _shuffle_roidb_inds
+        if len(labels) % 2 != 0:
+            labels.pop(-1)
         print "\nload images number = {}\n".format(len(labels))
+
         return labels
 
     ################## the images' path and names
