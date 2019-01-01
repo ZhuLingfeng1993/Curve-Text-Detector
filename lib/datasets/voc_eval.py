@@ -59,13 +59,7 @@ def qua_parse_rec_txt(filename):
     with open(filename.strip(), 'r') as f:
         json_data = yaml.load(f)
         shapes = json_data['shapes']
-        # only support single class currently
-        shapes = [shape for shape in shapes if shape['label'] == 'car']
         num_shapes = len(shapes)
-        # skip label file with no car label
-        if num_shapes == 0:
-            print("No car label in file: {}".format(filename))
-            return None
         objects = []
         for obj in shapes:
             points = obj['points']
@@ -626,21 +620,13 @@ def voc_eval_polygon(detpath,
         for i, imagename in enumerate(imagenames):
             # gt_objs_all[imagename] = curve_parse_rec_txt(anno_names[i])
             # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
-            # anno_names[i] = anno_names[i]
-            # print(anno_names[i].strip())
-            gt_objs = qua_parse_rec_txt(anno_names[i])
-            if gt_objs == None:
-                continue
-            else:
-                gt_objs_all[imagename] = gt_objs
-            # gt_objs_all[imagename] = qua_parse_rec_txt(anno_names[i])
+            anno_names[i] = anno_names[i]
+            print(anno_names[i].strip())
+            gt_objs_all[imagename] = qua_parse_rec_txt(anno_names[i])
 
             if i % 100 == 0:
                 print 'Reading annotation for {:d}/{:d}'.format(
                     i + 1, len(imagenames))
-        # temporarily fix bug of 'inds = np.reshape(inds, (-1, 2))' in _shuffle_roidb_inds
-        if len(gt_objs_all) % 2 != 0:
-            gt_objs_all.pop(-1)
         # save
         print 'Saving cached annotations to {:s}'.format(cachefile)
         with open(cachefile, 'w') as f:
@@ -650,8 +636,10 @@ def voc_eval_polygon(detpath,
     class_gt_objs = {}
     # number of not difficlut objects
     num_obj_not_diff = 0
+    ind_class_gt_objs = 0
     for ix, imagename in enumerate(imagenames):
-        cls_gt_objs_one_img = [obj for obj in gt_objs_all[imagename] if obj['name'] == classname]  # text
+        gt_objs = gt_objs_all[imagename]
+        cls_gt_objs_one_img = [obj for obj in gt_objs if obj['name'] == classname]  # text
         # assert(cls_gt_objs_one_img), 'Can not find any object in '+ classname+' class.'
         if not cls_gt_objs_one_img: continue
         bbox = np.array([x['bbox'] for x in cls_gt_objs_one_img])
@@ -662,8 +650,12 @@ def voc_eval_polygon(detpath,
         # class_gt_objs[imagename] = {'bbox': bbox,
         #                          'det': det}
         # index class
-        class_gt_objs[str(ix)] = {'bbox': bbox,
+        # class_gt_objs[str(ix)] = {'bbox': bbox,
+        # to keep consistent with test roidb data
+        class_gt_objs[str(ind_class_gt_objs)] = {'bbox': bbox,
                                   'det': det}
+        #                                          'det': det}
+        ind_class_gt_objs += 1
     # ########### read dets(in absolute coordinates) ###########
     detfile = detpath.format(classname)
     with open(detfile, 'r') as f:
