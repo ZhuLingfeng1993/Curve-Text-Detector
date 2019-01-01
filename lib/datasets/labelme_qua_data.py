@@ -137,11 +137,14 @@ class labelme_qua_data(imdb_text):
                 with open(label_file, 'r') as f:
                     json_data = yaml.load(f)
                     shapes = json_data['shapes']
+                    # only support single class currently
+                    shapes = [shape for shape in shapes if shape['label'] == 'car']
                     num_shapes = len(shapes)
                     # quadrilateral points: (x1, y1, x2, y2, x3, y3, x4, y4)
                     gt_info = np.zeros((num_shapes, 8), np.float32)  # syn
                     # circumscribed rectangle box: (xmin, ymin, xmax, ymax)
                     boxes = np.zeros((num_shapes, 4), np.float32)
+
                     for shape_idx, shape in enumerate(shapes):
                         points = shape['points']
                         assert len(points) == 4, 'len(points) = {}, should be 4.'.format(len(points))

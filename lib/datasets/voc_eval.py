@@ -59,6 +59,8 @@ def qua_parse_rec_txt(filename):
     with open(filename.strip(), 'r') as f:
         json_data = yaml.load(f)
         shapes = json_data['shapes']
+        # only support single class currently
+        shapes = [shape for shape in shapes if shape['label'] == 'car']
         num_shapes = len(shapes)
         objects = []
         for obj in shapes:
