@@ -62,6 +62,10 @@ def qua_parse_rec_txt(filename):
         # only support single class currently
         shapes = [shape for shape in shapes if shape['label'] == 'car']
         num_shapes = len(shapes)
+        # skip label file with no car label
+        if num_shapes == 0:
+            print("No car label in file: {}".format(filename))
+            return None
         objects = []
         for obj in shapes:
             points = obj['points']
@@ -622,9 +626,14 @@ def voc_eval_polygon(detpath,
         for i, imagename in enumerate(imagenames):
             # gt_objs_all[imagename] = curve_parse_rec_txt(anno_names[i])
             # each line in self._label_list_file is a relative path of data set name, so join the DATA_DIR
-            anno_names[i] = anno_names[i]
-            print(anno_names[i].strip())
-            gt_objs_all[imagename] = qua_parse_rec_txt(anno_names[i])
+            # anno_names[i] = anno_names[i]
+            # print(anno_names[i].strip())
+            gt_objs = qua_parse_rec_txt(anno_names[i])
+            if gt_objs == None:
+                continue
+            else:
+                gt_objs_all[imagename] = gt_objs
+            # gt_objs_all[imagename] = qua_parse_rec_txt(anno_names[i])
 
             if i % 100 == 0:
                 print 'Reading annotation for {:d}/{:d}'.format(

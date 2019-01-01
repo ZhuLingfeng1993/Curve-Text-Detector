@@ -294,7 +294,7 @@ def cfg_gen():
         f.write("  SNAPSHOT_ITERS: {} \n".format(params.snapshot))
         f.write("  RPN_PRE_NMS_TOP_N: 6000 \n"
                 "  RPN_POST_NMS_TOP_N: 300 \n"
-                "  USE_FLIPPED: False\n"
+                "  USE_FLIPPED: True\n"
                 "TEST:\n"
                 "  HAS_RPN: True\n"
                 "  AGNOSTIC: True\n"

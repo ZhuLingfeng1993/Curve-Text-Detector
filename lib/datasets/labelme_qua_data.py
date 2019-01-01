@@ -122,16 +122,17 @@ class labelme_qua_data(imdb_text):
             # Number of images to use
             if cfg.NUM_IMAGES != -1:
                 file_list = file_list[:cfg.NUM_IMAGES]
-            for ix, file_index in enumerate(file_list):
+            for file_index in file_list:
                 label = {}
                 # each line in self._label_list_file is a relative path of data set name,
                 # so join the DATA_DIR, so does the image path
-                label_file = os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset",
+                label_file = os.path.join(cfg.DATA_DIR,
+                                          "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset",
                                           'VOC2007', 'Annotations', file_index.strip() + '.json')
                 label['name'] = label_file
                 label['imagePath'] = os.path.join(cfg.DATA_DIR,
-                                                  "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset", 'VOC2007',
-                                                  'JPEGImages', file_index.strip() + '.jpg')
+                                                  "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset",
+                                                  'VOC2007', 'JPEGImages', file_index.strip() + '.jpg')
                 img = Image.open(label['imagePath'])
 
                 with open(label_file, 'r') as f:
@@ -140,6 +141,10 @@ class labelme_qua_data(imdb_text):
                     # only support single class currently
                     shapes = [shape for shape in shapes if shape['label'] == 'car']
                     num_shapes = len(shapes)
+                    # skip label file with no car label
+                    if num_shapes == 0:
+                        print("No car label in file: {}".format(label_file))
+                        continue
                     # quadrilateral points: (x1, y1, x2, y2, x3, y3, x4, y4)
                     gt_info = np.zeros((num_shapes, 8), np.float32)  # syn
                     # circumscribed rectangle box: (xmin, ymin, xmax, ymax)
