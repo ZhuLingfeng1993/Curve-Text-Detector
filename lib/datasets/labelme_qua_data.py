@@ -126,11 +126,10 @@ class labelme_qua_data(imdb_text):
                 label = {}
                 # each line in self._label_list_file is a relative path of data set name,
                 # so join the DATA_DIR, so does the image path
-                label_file = os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset",
+                label_file = os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset",
                                           'VOC2007', 'Annotations', file_index.strip() + '.json')
                 label['name'] = label_file
-                label['imagePath'] = os.path.join(cfg.DATA_DIR,
-                                                  "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset", 'VOC2007',
+                label['imagePath'] = os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset", 'VOC2007',
                                                   'JPEGImages', file_index.strip() + '.jpg')
                 img = Image.open(label['imagePath'])
 
@@ -143,6 +142,7 @@ class labelme_qua_data(imdb_text):
                     # circumscribed rectangle box: (xmin, ymin, xmax, ymax)
                     boxes = np.zeros((num_shapes, 4), np.float32)
                     for shape_idx, shape in enumerate(shapes):
+                        assert shape['label'] == 'car', 'shape label should be car.'
                         points = shape['points']
                         assert len(points) == 4, 'len(points) = {}, should be 4.'.format(len(points))
                         coordinates = []

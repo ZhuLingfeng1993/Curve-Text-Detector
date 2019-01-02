@@ -62,7 +62,7 @@ if switches.check_net:
 
 names.basenet = "ResNet50"  # "VGGNet"#"MobileNetMove4"#
 # dataset name
-names.dataset = "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset"  # "icdar2015ch4"   #
+names.dataset = "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset"  # "icdar2015ch4"   #
 # train dataset name
 names.train_dataset = names.dataset + "_train"  # "VOC2007"#
 #  test dataset name
@@ -179,9 +179,9 @@ def train_script_gen():
         if names.dataset == 'icdar2015ch4':
             f.write("  --train_label_list data/icdar2015ch4/ch4_training_localization_transcription_gt.txt \\\n"
                 "  --train_image_list data/icdar2015ch4/ch4_training_images.txt \n\n")
-        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
-            f.write("  --train_label_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/train.txt \\\n"
-                "  --train_image_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/train.txt \n\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset':
+            f.write("  --train_label_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/train.txt \\\n"
+                "  --train_image_list data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/train.txt \n\n")
         f.write("\n")
         # test part
         f.write("set +x\n"
@@ -199,9 +199,9 @@ def train_script_gen():
         if names.dataset == 'icdar2015ch4':
             f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
                     "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n")
-        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
-            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
-                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \n\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset':
+            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
+                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/test.txt \n\n")
 
 
 def test_script_gen():
@@ -224,9 +224,9 @@ def test_script_gen():
         if names.dataset == 'icdar2015ch4':
             f.write("  --test_label data/icdar2015ch4/Challenge4_Test_Task1_GT.txt \\\n"
                     "  --test_image data/icdar2015ch4/ch4_test_images.txt \\\n")
-        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset':
-            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
-                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset/VOC2007/ImageSets/Main/test.txt \\\n")
+        elif names.dataset == 'quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset':
+            f.write("  --test_label data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/test.txt \\\n"
+                "  --test_image data/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/VOC2007/ImageSets/Main/test.txt \\\n")
         f.write("  #--vis")
 
 

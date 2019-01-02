@@ -62,6 +62,7 @@ def qua_parse_rec_txt(filename):
         num_shapes = len(shapes)
         objects = []
         for obj in shapes:
+            assert obj['label'] == 'car', 'shape label should be car.'
             points = obj['points']
             assert len(points) == 4, 'len(points) = {}, should be 4.'.format(len(points))
             coordinates = []
@@ -593,9 +594,9 @@ def voc_eval_polygon(detpath,
     with open(imagesetfile, 'r') as f, open(annopath, 'r') as fa:
         lines = f.readlines()
         anno_lines = fa.readlines()
-    anno_names = [ os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset",
+    anno_names = [ os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset",
                                           'VOC2007', 'Annotations', x.strip() + '.json') for x in anno_lines]
-    imagenames = [os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-dataset", 'VOC2007', 'JPEGImages', y.strip() + '.jpg') for y in lines]
+    imagenames = [os.path.join(cfg.DATA_DIR, "quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset", 'VOC2007', 'JPEGImages', y.strip() + '.jpg') for y in lines]
     assert (len(imagenames) == len(anno_names)), 'each image should correspond to one label file'
 
     use_update = 'u'

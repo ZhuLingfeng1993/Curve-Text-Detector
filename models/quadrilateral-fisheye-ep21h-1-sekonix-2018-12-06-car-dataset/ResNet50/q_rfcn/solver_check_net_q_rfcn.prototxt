@@ -1,0 +1,12 @@
+train_net: "models/quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset/ResNet50/q_rfcn/train_check_net_q_rfcn.prototxt"
+base_lr: 0.0010000000475
+display: 1
+lr_policy: "step"
+gamma: 0.10000000149
+momentum: 0.899999976158
+weight_decay: 0.000500000023749
+stepsize: 40000
+snapshot: 0
+snapshot_prefix: "ResNet50_check_net_q_rfcn_quadrilateral-fisheye-ep21h-1-sekonix-2018-12-06-car-dataset"
+iter_size: 1
+
